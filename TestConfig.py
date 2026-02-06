@@ -70,23 +70,28 @@ class TestConfig:
 
         # Convert object dicts to objects
         for index, criterion in enumerate(self.criteria):
-            self.criteria[index] = CriterionConfig(criterion["type"], vars_dict=criterion)
+            self.criteria[index] = CriterionConfig(criterion["criterionType"], vars_dict=criterion)
 
 
 
 class CriterionConfig:
 
-    def __init__(self, type, vars_dict={}):
+    def __init__(self, criterionType, vars_dict={}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
             
-            self.type = type
+            self.criterionType = criterionType
 
-            if type == "PSUCurrent":
-                self.ineq       = "<"   # The measured current must be > or < than...
-                self.PSUCurrent = 0.0   # ... this current
-            
-            if type == "PSUVoltage":
-                self.ineq       = "<"   # The measured voltage must be > or < than...
-                self.PSUVoltage = 0.0   # ... this voltage
+            match criterionType:
+
+                case "PSUCurrent":
+                    self.ineq       = "<"   # The measured current must be > or < than...
+                    self.PSUCurrent = 0.0   # ... this current
+
+                case "PSUVoltage":
+                    self.ineq       = "<"   # The measured voltage must be > or < than...
+                    self.PSUVoltage = 0.0   # ... this voltage
+
+                case _:
+                    raise ValueError("Invalid criterionType value")
