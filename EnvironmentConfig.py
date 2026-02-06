@@ -34,12 +34,6 @@ class EnvironmentConfig:
         self.LVPSDependency = 0.0           # Minimum required voltage of LVPS for HVPS to activate
         self.auxPSUConfig   = []            # List of PSUConfig objects
 
-    def newAuxPSU(self):
-        self.auxPSUConfig.append(PSUConfig())
-    
-    def removeAuxPSU(self, index):
-        self.auxPSUConfig.pop(index) 
-
 
 
     """

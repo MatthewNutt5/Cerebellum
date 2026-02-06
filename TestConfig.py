@@ -19,22 +19,74 @@ class TestConfig:
 
     def __init__(self):
 
+        """
+        Test Types
+        - Full: Uses all devices, except interlock/DAQs
+        - LV: Only uses LVPS and RB
+        - Interlock: Uses all devices, triggers PSU interlock and reads transient from DAQs
+        """
+        self.testType       = "Full"
+
         self.LVPSVoltage    = 0.0       # If CV, set voltage to this; if CC, this is voltage limit
         self.LVPSCurrent    = 0.0       # If CV, this is current limit; if CC, set current to this
         self.LVPSConstCurr  = False     # Will the LVPS run in CC mode? (False = CV)
         self.HVPSVoltage    = 0.0       # "
         self.HVPSCurrent    = 0.0       # "
         self.HVPSConstCurr  = False     # "
-        self.AuxPSUSettings = []        # Ditto the above, as ordered triples [V, C, T/F]
+        self.AuxPSUSettings = []        # Ditto the above, as ordered triples [Voltage, Current, CC]
+        
+        self.tempEnable     = False     # Check for RTD temp before starting test?
+        self.maxTemp        = -30.0     # RTD must measure below this temp (Celsius) before starting test
+
         self.criteria       = []        # List of CriterionConfig objects
+
+    
+
+    """
+    Writes the contents of the object to the given filepath in the JSON format. 
+    """
+    def writeJSON(self, filepath):
+
+        # Convert all objects to dicts
+        vars_dict = self.__dict__.copy()
+        for criterion in vars_dict["criteria"]:
+            criterion = vars(criterion)
+        
+        # Open file and write JSON
+        with open(filepath, 'w') as f:
+            dump(vars_dict, f, indent=4)
+
+
+
+    """
+    Reads the given filepath for a JSON representation of a configuration;
+    populates the fields of the object with the values.
+    """
+    def readJSON(self, filepath):
+        
+        # Open file and read JSON
+        with open(filepath, 'r') as f:
+            self.__dict__ = load(f)
+
+        # Convert object dicts to objects
+        for criterion in self.AuxPSUConfig:
+            criterion = CriterionConfig(vars_dict=criterion)
 
 
 
 class CriterionConfig:
 
-    def __init__(self, type):
+    def __init__(self, type, vars_dict={}):
+        if vars_dict:
+            self.__dict__ = vars_dict.copy()
+        else:
+            
+            self.type = type
 
-        self.type = type
-
-        if type == "PSUCurrent":
-            self.PSUCurrent
+            if type == "PSUCurrent":
+                self.ineq       = "<"   # The measured current must be > or < than...
+                self.PSUCurrent = 0.0   # ... this current
+            
+            if type == "PSUVoltage":
+                self.ineq       = "<"   # The measured voltage must be > or < than...
+                self.PSUVoltage = 0.0   # ... this voltage
