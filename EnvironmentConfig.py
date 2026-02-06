@@ -42,11 +42,12 @@ class EnvironmentConfig:
     def writeJSON(self, filepath):
 
         # Convert all objects to dicts
-        vars_dict = self.__dict__.copy()
+        vars_dict = vars(self).copy()
         vars_dict["LVPSConfig"] = vars(self.LVPSConfig)
         vars_dict["HVPSConfig"] = vars(self.HVPSConfig)
-        for PSU in vars_dict["AuxPSUConfig"]:
-            PSU = vars(PSU)
+        vars_dict["auxPSUConfig"] = []
+        for PSU in self.auxPSUConfig:
+            vars_dict["auxPSUConfig"].append(vars(PSU))
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -67,8 +68,8 @@ class EnvironmentConfig:
         # Convert object dicts to objects
         self.LVPSConfig = PSUConfig(vars_dict=self.LVPSConfig)
         self.HVPSConfig = PSUConfig(vars_dict=self.HVPSConfig)
-        for PSU in self.AuxPSUConfig:
-            PSU = PSUConfig(vars_dict=PSU)
+        for index, PSU in enumerate(self.auxPSUConfig):
+            self.auxPSUConfig[index] = PSUConfig(vars_dict=PSU)
 
 
 

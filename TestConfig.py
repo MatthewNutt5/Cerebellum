@@ -7,7 +7,6 @@ runTest.py.
 
 This file also contains the CriterionConfig class, which is a helper class used
 to specify an individual criterion the test should evaluate.
-TODO: add json support
 TODO: types of criterion: current, voltage, DAQ transient, Tamalero script
 """
 
@@ -33,7 +32,7 @@ class TestConfig:
         self.HVPSVoltage    = 0.0       # "
         self.HVPSCurrent    = 0.0       # "
         self.HVPSConstCurr  = False     # "
-        self.AuxPSUSettings = []        # Ditto the above, as ordered triples [Voltage, Current, CC]
+        self.auxPSUSettings = []        # Ditto the above, as ordered triples [Voltage, Current, CC]
         
         self.tempEnable     = False     # Check for RTD temp before starting test?
         self.maxTemp        = -30.0     # RTD must measure below this temp (Celsius) before starting test
@@ -48,9 +47,10 @@ class TestConfig:
     def writeJSON(self, filepath):
 
         # Convert all objects to dicts
-        vars_dict = self.__dict__.copy()
-        for criterion in vars_dict["criteria"]:
-            criterion = vars(criterion)
+        vars_dict = vars(self).copy()
+        vars_dict["criteria"] = []
+        for criterion in self.criteria:
+            vars_dict["criteria"].append(vars(criterion))
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -69,8 +69,8 @@ class TestConfig:
             self.__dict__ = load(f)
 
         # Convert object dicts to objects
-        for criterion in self.AuxPSUConfig:
-            criterion = CriterionConfig(vars_dict=criterion)
+        for index, criterion in enumerate(self.criteria):
+            self.criteria[index] = CriterionConfig(criterion["type"], vars_dict=criterion)
 
 
 
