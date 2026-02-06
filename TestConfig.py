@@ -18,17 +18,10 @@ class TestConfig:
 
     def __init__(self):
 
-        """
-        Test Types
-        - Full: Uses all devices, except interlock/DAQs
-        - LV: Only uses LVPS and RB
-        - Interlock: Uses all devices, triggers PSU interlock and reads transient from DAQs
-        """
-        self.testType       = "Full"
-
         self.LVPSVoltage    = 0.0       # If CV, set voltage to this; if CC, this is voltage limit
         self.LVPSCurrent    = 0.0       # If CV, this is current limit; if CC, set current to this
         self.LVPSConstCurr  = False     # Will the LVPS run in CC mode? (False = CV)
+        self.HVPSEnable     = False     # Enable HVPS operation?
         self.HVPSVoltage    = 0.0       # "
         self.HVPSCurrent    = 0.0       # "
         self.HVPSConstCurr  = False     # "
