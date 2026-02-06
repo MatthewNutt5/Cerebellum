@@ -4,7 +4,7 @@ This file contains the EnvironmentConfig class, which is used to specify
 the control structure of a given test stand - IP addresses, interface types,
 etc. Ideally, the environment configuration is determined once and will not
 change between test cycles. Configurations can be stored in JSON files for
-later use.
+later use. Primarily used by ___.
 
 Definitions
     - Outgoing Dependency: "This power supply must see a voltage of at least _
@@ -14,8 +14,9 @@ Definitions
     deactivated." Likewise, the LVPS must see that the HVPS is disabled before
     it will turn off.
 
-This file also contains the PSUConfig class, which is a helper class used to
-specify the control configuration of a power supply in the test environment.
+This file also contains the PSUConfig class, which is a helper class used
+to specify the control configuration of a power supply in the test environment.
+TODO: add PSU dependencies to PSUConfig
 TODO: support for interlock, DAQs, (cold box?)
 TODO: add more interfaces (how do we handle CAN?)
 """
@@ -25,16 +26,10 @@ from json import dump, load
 class EnvironmentConfig:
 
     def __init__(self):
-        self.RBConfig = {
-            "IP"            : "",           # Ethernet IP address of KCU
-            "FiberPort"     : 0             # KCU fiber port for RB fiber-optic
-            }
-        self.LVPSConfig     = PSUConfig()   # PSUConfig for LVPS
-        self.HVPSConfig     = PSUConfig()   # PSUConfig for HVPS
-        self.LVPSDependency = 0.0           # Minimum required voltage of LVPS for HVPS to activate
-        self.auxPSUConfig   = []            # List of PSUConfig objects
-
-
+        self.RBIP           = ""                # Ethernet IP address of KCU
+        self.PSUConfigList  = []                # List of PSUConfig objects
+        self.PSUConfigList.append(PSUConfig())  # First PSU; LVPS
+        self.PSUConfigList.append(PSUConfig())  # Second PSU; HVPS
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -43,17 +38,13 @@ class EnvironmentConfig:
 
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
-        vars_dict["LVPSConfig"] = vars(self.LVPSConfig)
-        vars_dict["HVPSConfig"] = vars(self.HVPSConfig)
-        vars_dict["auxPSUConfig"] = []
-        for PSU in self.auxPSUConfig:
-            vars_dict["auxPSUConfig"].append(vars(PSU))
+        vars_dict["PSUConfigList"] = []
+        for PSU in self.PSUConfigList:
+            vars_dict["PSUConfigList"].append(vars(PSU))
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
             dump(vars_dict, f, indent=4)
-
-
 
     """
     Reads the given filepath for a JSON representation of a configuration;
@@ -66,10 +57,8 @@ class EnvironmentConfig:
             self.__dict__ = load(f)
 
         # Convert object dicts to objects
-        self.LVPSConfig = PSUConfig(vars_dict=self.LVPSConfig)
-        self.HVPSConfig = PSUConfig(vars_dict=self.HVPSConfig)
-        for index, PSU in enumerate(self.auxPSUConfig):
-            self.auxPSUConfig[index] = PSUConfig(vars_dict=PSU)
+        for index, PSU in enumerate(self.PSUConfigList):
+            self.PSUConfigList[index] = PSUConfig(vars_dict=PSU)
 
 
 
