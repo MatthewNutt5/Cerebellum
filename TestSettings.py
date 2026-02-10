@@ -2,7 +2,8 @@
 TestSettings.py
 This file contains the TestSettings class, which is used to specify the
 conditions of a test - power supply voltages/currents, Tamalero programs, etc.
-Settings can be stored in JSON files for later use. Primarily used by ___.
+Settings can be stored in JSON files for later use. Primarily used by
+EnvironmentControl.
 
 This file also contains the PSUSettings class, which is a helper class used to
 specify the settings of a power supply used during a test, and the Criterion
@@ -24,7 +25,7 @@ class TestSettings:
         self.PSUSettingsList    = []                # List of PSUSettings objects
         self.PSUSettingsList.append(PSUSettings())  # First PSU; LVPS
         self.PSUSettingsList.append(PSUSettings())  # Second PSU; HVPS
-        self.criteria           = []                # List of Criterion objects
+        self.criteriaList       = []                # List of Criterion objects
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -33,14 +34,8 @@ class TestSettings:
 
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
-
-        vars_dict["PSUSettingsList"] = []
-        for PSU in self.PSUSettingsList:
-            vars_dict["PSUSettingsList"].append(vars(PSU))
-
-        vars_dict["criteria"] = []
-        for criterion in self.criteria:
-            vars_dict["criteria"].append(vars(criterion))
+        vars_dict["PSUSettingsList"] = [vars(PSU) for PSU in self.PSUSettingsList]
+        vars_dict["criteriaList"] = [vars(criterion) for criterion in self.criteriaList]
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -60,8 +55,8 @@ class TestSettings:
         for index, PSU in enumerate(self.PSUSettingsList):
             self.PSUSettingsList[index] = PSUSettings(vars_dict=PSU)
 
-        for index, criterion in enumerate(self.criteria):
-            self.criteria[index] = Criterion(criterion["criterionType"], vars_dict=criterion)
+        for index, criterion in enumerate(self.criteriaList):
+            self.criteriaList[index] = Criterion(criterion["criterionType"], vars_dict=criterion)
 
 
 

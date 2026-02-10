@@ -4,7 +4,7 @@ This file contains the EnvironmentConfig class, which is used to specify
 the control structure of a given test stand - IP addresses, interface types,
 etc. Ideally, the environment configuration is determined once and will not
 change between test cycles. Configurations can be stored in JSON files for
-later use. Primarily used by ___.
+later use. Primarily used by EnvironmentControl.
 
 Definitions
     - Outgoing Dependency: "This power supply must see a voltage of at least _
@@ -26,7 +26,7 @@ from json import dump, load
 class EnvironmentConfig:
 
     def __init__(self):
-        self.RBIP           = ""                # Ethernet IP address of KCU
+        self.addressRB      = ""                # Ethernet IP address of KCU
         self.PSUConfigList  = []                # List of PSUConfig objects
         self.PSUConfigList.append(PSUConfig())  # First PSU; LVPS
         self.PSUConfigList.append(PSUConfig())  # Second PSU; HVPS
@@ -38,9 +38,7 @@ class EnvironmentConfig:
 
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
-        vars_dict["PSUConfigList"] = []
-        for PSU in self.PSUConfigList:
-            vars_dict["PSUConfigList"].append(vars(PSU))
+        vars_dict["PSUConfigList"] = [vars(PSU) for PSU in self.PSUConfigList]
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
