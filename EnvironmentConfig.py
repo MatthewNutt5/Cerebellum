@@ -34,7 +34,7 @@ class EnvironmentConfig:
     """
     Writes the contents of the object to the given filepath in the JSON format. 
     """
-    def writeJSON(self, filepath):
+    def writeJSON(self, filepath: str):
 
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
@@ -48,7 +48,7 @@ class EnvironmentConfig:
     Reads the given filepath for a JSON representation of a configuration;
     populates the fields of the object with the values.
     """
-    def readJSON(self, filepath):
+    def readJSON(self, filepath: str):
         
         # Open file and read JSON
         with open(filepath, 'r') as f:
@@ -62,13 +62,14 @@ class EnvironmentConfig:
 
 class PSUConfig:
 
-    def __init__(self, vars_dict={}):
+    def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.connector      = ""    # Physical connector (Ethernet or USB)
-            self.IP             = ""    # Ethernet IP address
-            self.COM            = 0     # USB COM port
-            self.interface      = ""    # Software interface (SCPI, BK)
-            self.channel        = 0     # PSU channel number
-            self.currentLimit   = 0.0   # Current limit, in amps
+            self.connector      = ""                # Physical connector (Ethernet or USB)
+            self.IP             = ""                # Ethernet IP address
+            self.COM            = "/dev/ttyACM0"    # USB COM port
+            self.baudrate       = 115200            # COM baudrate
+            self.interface      = ""                # Software interface (SCPI, BK)
+            self.channel        = 0                 # PSU channel number
+            self.currentLimit   = 0.0               # Current limit, in amps

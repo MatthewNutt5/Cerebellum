@@ -30,7 +30,7 @@ class TestSettings:
     """
     Writes the contents of the object to the given filepath in the JSON format. 
     """
-    def writeJSON(self, filepath):
+    def writeJSON(self, filepath: str):
 
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
@@ -45,7 +45,7 @@ class TestSettings:
     Reads the given filepath for a JSON representation of a configuration;
     populates the fields of the object with the values.
     """
-    def readJSON(self, filepath):
+    def readJSON(self, filepath: str):
         
         # Open file and read JSON
         with open(filepath, 'r') as f:
@@ -62,7 +62,7 @@ class TestSettings:
 
 class PSUSettings:
 
-    def __init__(self, vars_dict={}):
+    def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
@@ -95,4 +95,4 @@ class Criterion:
                     self.PSUVoltage = 0.0   # ... this voltage
 
                 case _:
-                    raise ValueError("Invalid criterionType value")
+                    raise ValueError(f"Invalid criterionType value: {criterionType}")
