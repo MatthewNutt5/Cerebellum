@@ -23,6 +23,8 @@ TODO: add more interfaces (how do we handle CAN?)
 
 from json import dump, load
 
+
+
 class EnvironmentConfig:
 
     def __init__(self):
@@ -72,4 +74,3 @@ class PSUConfig:
             self.baudrate       = 115200            # COM baudrate
             self.interface      = ""                # Software interface (SCPI, BK)
             self.channel        = 0                 # PSU channel number
-            self.currentLimit   = 0.0               # Current limit, in amps

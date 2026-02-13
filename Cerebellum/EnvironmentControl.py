@@ -8,12 +8,16 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
+import sys
+sys.path.append('./Cerebellum/')
+
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, Criterion
 import serial, time, re
 
-#def runTest(config: EnvironmentConfig, settings: TestSettings):
+SERIAL_DELAY = 0.1
 
+#def runTest(config: EnvironmentConfig, settings: TestSettings):
 
 
 
@@ -37,15 +41,23 @@ class _PSU:
                 print(f"Connected to {self.config.COM}")
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
-
             except serial.SerialException as e:
                 raise RuntimeError(f"Failed to open serial port {self.config.COM}: {e}")
+        
+        print(self.getIDN())
+        print(self.getVersion())
+    
+    def __del__(self):
+        # Attempt to close any COM connections
+        if self.ser and self.ser.is_open:
+            self.ser.close()
+            print(f"Closed serial port {self.config.COM}.")
 
     """
     Send an SCPI command and return the decoded response
     Pass to _parseFloatSCPI to extract float
     """
-    def _querySCPI(self, cmd: str, delay: float = 0.1):
+    def _querySCPI(self, cmd: str):
 
         if (self.config.connector == "USB"):
             if not self.ser or not self.ser.is_open:
@@ -53,44 +65,72 @@ class _PSU:
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(delay)
+            time.sleep(SERIAL_DELAY)
             response = self.ser.readline()
             try:
-                return response.decode().strip() if response else None
+                return response.decode().strip() if response else ""
             except UnicodeDecodeError:
                 print("Unreadable response: ", response)
-                return None
+                return ""
+        return ""
     
     """
     Send an SCPI command without reading a response
     """
-    def _writeSCPI(self, cmd: str, delay: float = 0.1):
+    def _writeSCPI(self, cmd: str):
+
         if (self.config.connector == "USB"):
             if not self.ser or not self.ser.is_open:
                 raise RuntimeError(f"Serial port {self.config.COM} is not open.")
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(delay)
+            time.sleep(SERIAL_DELAY)
     
     """
-    Commands
+    PSU control commands =======================================================
     """
     def getIDN(self):
-        return self._querySCPI("*IDN?\n")
+        if (self.config.interface == "SCPI"):
+            return self._querySCPI("*IDN?\n")
     
     def getVersion(self):
-        return self._querySCPI("SYST:VERS?\n")
+        if (self.config.interface == "SCPI"):
+            return self._querySCPI("SYST:VERS?\n")
     
     def setVoltage(self, voltage: float):
-        self._writeSCPI(f"INST:SEL {self.config.channel}\n")
-        self._writeSCPI(f"VOLT {voltage:.2f}V\n")
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            self._writeSCPI(f"VOLT {voltage:.2f}V\n")
 
+    def setCurrent(self, current: float):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            self._writeSCPI(f"CURR {current:.2f}A\n")
+    
+    def measureVoltage(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            return _parseFloatSCPI(self._querySCPI("MEAS:VOLT?\n"))
 
+    def measureCurrent(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            return _parseFloatSCPI(self._querySCPI("MEAS:CURR?\n"))
+        
+    def turnOff(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            self._writeSCPI(f"OUTP:STAT 0\n")
+
+    def turnOn(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            self._writeSCPI(f"OUTP:STAT 1\n")
 
 
 """
-Extract a float (e.g. V or A) from a decoded SCPI response
+Extract a float (e.g. voltage) from a decoded SCPI response
 """
 def _parseFloatSCPI(response: str):
     match = re.search(r"[-+]?\d*\.?\d+", response)
