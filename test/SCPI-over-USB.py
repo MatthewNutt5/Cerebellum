@@ -1,11 +1,13 @@
 import sys
+sys.path.append('../')
 sys.path.append('../Cerebellum/')
 
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.EnvironmentControl import _PSU
+import time
 
 config = EnvironmentConfig()
-config.PSUConfigList[0].connector = "USB"
+config.PSUConfigList[0].protocol = "Serial"
 config.PSUConfigList[0].interface = "SCPI"
 
 PSU = _PSU(config.PSUConfigList[0])
@@ -13,6 +15,8 @@ PSU.turnOff()
 PSU.setVoltage(1.0)
 PSU.setCurrent(0.005)
 PSU.turnOn()
+time.sleep(3)
 print(PSU.measureVoltage())
 print(PSU.measureCurrent())
+time.sleep(1)
 PSU.turnOff()

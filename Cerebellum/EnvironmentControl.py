@@ -8,14 +8,11 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
-import sys
-sys.path.append('./Cerebellum/')
-
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, Criterion
 import serial, time, re
 
-SERIAL_DELAY = 0.1
+SERIAL_WRITE_DELAY = 0.1
 
 #def runTest(config: EnvironmentConfig, settings: TestSettings):
 
@@ -30,7 +27,7 @@ class _PSU:
 
         self.config = config
 
-        if (self.config.connector == "USB"):
+        if (self.config.protocol == "Serial"):
             try:
                 self.ser = serial.Serial(
                     port=self.config.COM,
@@ -44,8 +41,8 @@ class _PSU:
             except serial.SerialException as e:
                 raise RuntimeError(f"Failed to open serial port {self.config.COM}: {e}")
         
-        print(self.getIDN())
-        print(self.getVersion())
+        print(f"ID: {self.getIDN()}")
+        print(f"Version: {self.getVersion()}")
     
     def __del__(self):
         # Attempt to close any COM connections
@@ -59,13 +56,13 @@ class _PSU:
     """
     def _querySCPI(self, cmd: str):
 
-        if (self.config.connector == "USB"):
+        if (self.config.protocol == "Serial"):
             if not self.ser or not self.ser.is_open:
                 raise RuntimeError(f"Serial port {self.config.COM} is not open.")
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(SERIAL_DELAY)
+            time.sleep(SERIAL_WRITE_DELAY)
             response = self.ser.readline()
             try:
                 return response.decode().strip() if response else ""
@@ -79,13 +76,13 @@ class _PSU:
     """
     def _writeSCPI(self, cmd: str):
 
-        if (self.config.connector == "USB"):
+        if (self.config.protocol == "Serial"):
             if not self.ser or not self.ser.is_open:
                 raise RuntimeError(f"Serial port {self.config.COM} is not open.")
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(SERIAL_DELAY)
+            time.sleep(SERIAL_WRITE_DELAY)
     
     """
     PSU control commands =======================================================
@@ -101,12 +98,12 @@ class _PSU:
     def setVoltage(self, voltage: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
-            self._writeSCPI(f"VOLT {voltage:.2f}V\n")
+            self._writeSCPI(f"VOLT {voltage:.3f}\n")
 
     def setCurrent(self, current: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
-            self._writeSCPI(f"CURR {current:.2f}A\n")
+            self._writeSCPI(f"CURR {current:.3f}\n")
     
     def measureVoltage(self):
         if (self.config.interface == "SCPI"):

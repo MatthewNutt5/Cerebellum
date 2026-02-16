@@ -68,9 +68,9 @@ class PSUConfig:
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.connector      = ""                # Physical connector (Ethernet or USB)
-            self.IP             = ""                # Ethernet IP address
-            self.COM            = "/dev/ttyACM0"    # USB COM port
+            self.protocol       = ""                # Communication protocol (IP or Serial)
+            self.IP             = ""                # IP address
+            self.COM            = "/dev/ttyACM0"    # COM port
             self.baudrate       = 115200            # COM baudrate
-            self.interface      = ""                # Software interface (SCPI, BK)
+            self.interface      = ""                # Software interface (SCPI, CAN)
             self.channel        = 0                 # PSU channel number
