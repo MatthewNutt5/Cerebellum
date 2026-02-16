@@ -10,7 +10,7 @@ This file also contains several helper classes and functions.
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, Criterion
-import serial, time, re
+import serial, socketscpi, time, re
 
 SERIAL_WRITE_DELAY = 0.1
 
@@ -34,21 +34,27 @@ class _PSU:
                     baudrate=self.config.baudrate,
                     timeout=1.0
                 )
-                time.sleep(2)  # Wait for connection to establish
-                print(f"Connected to {self.config.COM}")
+                print(f"Opened serial port {self.config.COM}.")
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
             except serial.SerialException as e:
                 raise RuntimeError(f"Failed to open serial port {self.config.COM}: {e}")
+        elif (self.config.protocol == "IP"):
+            try:
+                self.socket = socketscpi.SocketInstrument(self.config.IP)
+            except socketscpi.SockInstError as e:
+                raise RuntimeError(f"Failed to open IP socket {self.config.IP}: {e}")
         
-        print(f"ID: {self.getIDN()}")
+        print(f"IDN: {self.getIDN()}")
         print(f"Version: {self.getVersion()}")
     
     def __del__(self):
-        # Attempt to close any COM connections
+        # Attempt to close any open connections
         if self.ser and self.ser.is_open:
             self.ser.close()
             print(f"Closed serial port {self.config.COM}.")
+        if self.socket:
+            self.socket.close()
 
     """
     Send an SCPI command and return the decoded response
@@ -69,6 +75,10 @@ class _PSU:
             except UnicodeDecodeError:
                 print("Unreadable response: ", response)
                 return ""
+        elif (self.config.protocol == "IP"):
+            if not self.socket:
+                raise RuntimeError(f"IP socket {self.config.IP} is not open.")
+            return self.socket.query(cmd)
         return ""
     
     """
@@ -83,6 +93,10 @@ class _PSU:
             self.ser.write(cmd.encode())
             self.ser.flush()
             time.sleep(SERIAL_WRITE_DELAY)
+        elif (self.config.protocol == "IP"):
+            if not self.socket:
+                raise RuntimeError(f"IP socket {self.config.IP} is not open.")
+            self.socket.write(cmd)
     
     """
     PSU control commands =======================================================
