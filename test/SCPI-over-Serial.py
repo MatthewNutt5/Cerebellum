@@ -8,7 +8,9 @@ import time
 
 config = EnvironmentConfig()
 config.PSUConfigList[0].protocol = "Serial"
+config.PSUConfigList[0].COM = "/dev/ttyACM0"
 config.PSUConfigList[0].interface = "SCPI"
+config.PSUConfigList[0].channel = 0
 
 PSU = _PSU(config.PSUConfigList[0])
 PSU.turnOff()

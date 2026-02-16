@@ -8,7 +8,9 @@ import time
 
 config = EnvironmentConfig()
 config.PSUConfigList[0].protocol = "IP"
+config.PSUConfigList[0].IP = "192.168.0.40"
 config.PSUConfigList[0].interface = "SCPI"
+config.PSUConfigList[0].channel = 0
 
 PSU = _PSU(config.PSUConfigList[0])
 PSU.turnOff()
