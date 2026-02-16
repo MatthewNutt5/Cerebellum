@@ -112,12 +112,12 @@ class _PSU:
     def setVoltage(self, voltage: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
-            self._writeSCPI(f"VOLT {voltage:.3f}\n")
+            self._writeSCPI(f"VOLT {voltage}\n")
 
     def setCurrent(self, current: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
-            self._writeSCPI(f"CURR {current:.3f}\n")
+            self._writeSCPI(f"CURR {current}\n")
     
     def measureVoltage(self):
         if (self.config.interface == "SCPI"):
