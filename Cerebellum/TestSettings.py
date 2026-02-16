@@ -82,17 +82,14 @@ class Criterion:
             
             self.criterionType = criterionType
 
-            match criterionType:
-
-                case "PSUCurrent":
-                    self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
-                    self.ineq       = "<"   # The measured current must be > or < than...
-                    self.PSUCurrent = 0.0   # ... this current
-
-                case "PSUVoltage":
-                    self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
-                    self.ineq       = "<"   # The measured voltage must be > or < than...
-                    self.PSUVoltage = 0.0   # ... this voltage
-
-                case _:
-                    raise ValueError(f"Invalid criterionType value: {criterionType}")
+            # NOTE: Would use a match/case here, but that's only available with Python 3.10+
+            if (criterionType == "PSUCurrent"):
+                self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
+                self.ineq       = "<"   # The measured current must be > or < than...
+                self.PSUCurrent = 0.0   # ... this current
+            elif (criterionType == "PSUVoltage"):
+                self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
+                self.ineq       = "<"   # The measured voltage must be > or < than...
+                self.PSUVoltage = 0.0   # ... this voltage
+            else:
+                raise ValueError(f"Invalid criterionType value: {criterionType}")
