@@ -6,13 +6,15 @@ function is runTest, which executes the test specified by a TestSettings object
 on the test environment specified by an EnvironmentConfig object.
 
 This file also contains several helper classes and functions.
+TODO: add CC/CV command
+TODO: 
 """
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, Criterion
 import serial, socketscpi, time, re
 
-SERIAL_WRITE_DELAY = 0.1
+SCPI_WRITE_DELAY = 0.1
 
 #def runTest(config: EnvironmentConfig, settings: TestSettings):
 
@@ -50,11 +52,12 @@ class _PSU:
     
     def __del__(self):
         # Attempt to close any open connections
-        if self.ser and self.ser.is_open:
+        if ("ser" in vars(self)) and self.ser and self.ser.is_open:
             self.ser.close()
             print(f"Closed serial port {self.config.COM}.")
-        if self.socket:
+        if ("socket" in vars(self)) and self.socket:
             self.socket.close()
+            print(f"Closed IP socket {self.config.IP}.")
 
     """
     Send an SCPI command and return the decoded response
@@ -68,7 +71,7 @@ class _PSU:
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(SERIAL_WRITE_DELAY)
+            time.sleep(SCPI_WRITE_DELAY)
             response = self.ser.readline()
             try:
                 return response.decode().strip() if response else ""
@@ -92,11 +95,12 @@ class _PSU:
             self.ser.reset_input_buffer()
             self.ser.write(cmd.encode())
             self.ser.flush()
-            time.sleep(SERIAL_WRITE_DELAY)
         elif (self.config.protocol == "IP"):
             if not self.socket:
                 raise RuntimeError(f"IP socket {self.config.IP} is not open.")
             self.socket.write(cmd)
+
+        time.sleep(SCPI_WRITE_DELAY)
     
     """
     PSU control commands =======================================================
@@ -138,6 +142,7 @@ class _PSU:
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             self._writeSCPI(f"OUTP:STAT 1\n")
+
 
 
 """
