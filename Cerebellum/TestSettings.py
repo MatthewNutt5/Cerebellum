@@ -86,10 +86,10 @@ class Criterion:
             if (criterionType == "PSUCurrent"):
                 self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
                 self.ineq       = "<"   # The measured current must be > or < than...
-                self.PSUCurrent = 0.0   # ... this current
+                self.PSUCurrent = 0.0   # ...this current
             elif (criterionType == "PSUVoltage"):
                 self.PSUidx     = 0     # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
                 self.ineq       = "<"   # The measured voltage must be > or < than...
-                self.PSUVoltage = 0.0   # ... this voltage
+                self.PSUVoltage = 0.0   # ...this voltage
             else:
                 raise ValueError(f"Invalid criterionType value: {criterionType}")

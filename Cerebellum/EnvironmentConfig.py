@@ -30,8 +30,6 @@ class EnvironmentConfig:
     def __init__(self):
         self.addressRB      = ""                # Ethernet IP address of KCU
         self.PSUConfigList  = []                # List of PSUConfig objects
-        self.PSUConfigList.append(PSUConfig())  # First PSU; LVPS
-        self.PSUConfigList.append(PSUConfig())  # Second PSU; HVPS
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -68,9 +66,9 @@ class PSUConfig:
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.protocol       = ""                # Communication protocol (IP or Serial)
+            self.protocol       = ""                # Communication protocol (IP / Serial)
             self.IP             = ""                # IP address
-            self.COM            = ""                # COM port (e.g. "/dev/ttyACM0" or "COM1")
+            self.COM            = ""                # COM port (e.g. /dev/ttyACM0, COM1)
             self.baudrate       = 115200            # COM baudrate
-            self.interface      = ""                # Software interface (SCPI, CAN)
+            self.interface      = ""                # Software interface (SCPI / CAN)
             self.channel        = 0                 # PSU channel number

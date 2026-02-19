@@ -6,8 +6,9 @@ function is runTest, which executes the test specified by a TestSettings object
 on the test environment specified by an EnvironmentConfig object.
 
 This file also contains several helper classes and functions.
-TODO: add CC/CV command
-TODO: 
+TODO: add CC/CV command to _PSU
+TODO: implement CC/CV in runTest
+TODO: implement enable/disable in runTest
 """
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
@@ -16,15 +17,60 @@ import serial, socketscpi, time, re
 
 SCPI_WRITE_DELAY = 0.1
 
-#def runTest(config: EnvironmentConfig, settings: TestSettings):
+def runTest(config: EnvironmentConfig, settings: TestSettings):
+    
+    # Initialize all PSUs 
+    print("Intializing PSUs ==========")
+    PSUList = []
+    for idx, psu in enumerate(config.PSUConfigList):
+        print(f"Initializing PSU #{idx} -----")
+        PSUList.append(_PSU(psu))
+
+    # Report and wait for user input
+    print()
+    print("All PSUs initialized successfully.")
+    print("Verify the credentials appear as expected before continuing. (Next step: Setting PSUs to assigned levels)")
+    input("Press Enter to continue...")
+    print()
+
+    # Set all PSUs to their assigned settings
+    print("Setting PSUs to assigned levels ==========")
+    for idx, (psu, setting) in enumerate(zip(PSUList, settings.PSUSettingsList)):
+        print(f"Initializing PSU #{idx} -----")
+        print(f"Voltage: {setting.voltage}")
+        print(f"Current: {setting.current}")
+        psu.turnOff()
+        psu.setVoltage(setting.voltage)
+        psu.setCurrent(setting.current)
+    
+    # Report and wait for user input
+    print()
+    print("All PSUs set successfully.")
+    print("Verify the settings appear as expected before continuing. (Next step: Enabling PSUs)")
+    input("Press Enter to continue...")
+    print()
+
+    # Turn on all PSUs
+    for idx, psu in enumerate(PSUList):
+        print(f"Enabling PSU #{idx} -----")
+        psu.turnOn()
+
+    # Report and wait for user input
+    print()
+    print("All PSUs enabled successfully.")
+    print("Verify the PSUs are behaving as expected before continuing. (Next step: Checking criteria)")
+    input("Press Enter to continue...")
+    print()
+
+    # Check all criteria
 
 
-
+"""
+Power Supply Control ===========================================================
+"""
 class _PSU:
 
-    """
-    Initialize connection, verify with ID and version query
-    """
+    # Initialize connection, verify with ID and version query
     def __init__(self, config: PSUConfig):
 
         self.config = config
@@ -46,12 +92,14 @@ class _PSU:
                 self.socket = socketscpi.SocketInstrument(self.config.IP)
             except socketscpi.SockInstError as e:
                 raise RuntimeError(f"Failed to open IP socket {self.config.IP}: {e}")
+        else:
+            raise ValueError(f"Invalid protocol value: {self.config.protocol}")
         
         print(f"IDN: {self.getIDN()}")
         print(f"Version: {self.getVersion()}")
     
+    # Attempt to close any open connections
     def __del__(self):
-        # Attempt to close any open connections
         if ("ser" in vars(self)) and self.ser and self.ser.is_open:
             self.ser.close()
             print(f"Closed serial port {self.config.COM}.")
@@ -59,10 +107,8 @@ class _PSU:
             self.socket.close()
             print(f"Closed IP socket {self.config.IP}.")
 
-    """
-    Send an SCPI command and return the decoded response
-    Pass to _parseFloatSCPI to extract float
-    """
+    # Send an SCPI command and return the decoded response
+    # Pass to _parseFloatSCPI to extract float
     def _querySCPI(self, cmd: str):
 
         if (self.config.protocol == "Serial"):
@@ -84,9 +130,7 @@ class _PSU:
             return self.socket.query(cmd)
         return ""
     
-    """
-    Send an SCPI command without reading a response
-    """
+    # Send an SCPI command without reading a response
     def _writeSCPI(self, cmd: str):
 
         if (self.config.protocol == "Serial"):
@@ -103,7 +147,7 @@ class _PSU:
         time.sleep(SCPI_WRITE_DELAY)
     
     """
-    PSU control commands =======================================================
+    PSU control commands ==========
     """
     def getIDN(self):
         if (self.config.interface == "SCPI"):
@@ -145,9 +189,16 @@ class _PSU:
 
 
 
-"""
-Extract a float (e.g. voltage) from a decoded SCPI response
-"""
+# Extract a float (e.g. voltage) from a decoded SCPI response
 def _parseFloatSCPI(response: str):
     match = re.search(r"[-+]?\d*\.?\d+", response)
     return float(match.group(0)) if match else None
+
+
+
+"""
+Criterion Evaluation ===========================================================
+"""
+
+#def _evalPSUVoltage(criterion: Criterion, psu: _PSU):
+
