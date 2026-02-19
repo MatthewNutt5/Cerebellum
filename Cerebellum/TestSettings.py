@@ -9,7 +9,6 @@ This file also contains the PSUSettings class, which is a helper class used to
 specify the settings of a power supply used during a test, and the Criterion
 class, which is a helper class used to specify an individual criterion the test
 should evaluate.
-TODO: types of criterion: current, voltage, DAQ transient, Tamalero script
 """
 
 from json import dump, load

@@ -6,11 +6,6 @@ function is runTest, which executes the test specified by a TestSettings object
 on the test environment specified by an EnvironmentConfig object.
 
 This file also contains several helper classes and functions.
-TODO: add CC/CV command to _PSU
-TODO: implement CC/CV in runTest
-TODO: implement enable/disable in runTest
-TODO: add color to print statements
-TODO: add verbosity levels
 """
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig

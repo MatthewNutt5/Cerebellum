@@ -1,0 +1,32 @@
+Key Features ==========
+
+- Add PSU test script for runTest
+- EnvironmentControl: Add CC/CV control to PSUs 
+- EnvironmentControl: Add Enable/Disable to PSUs
+- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
+    - Config stored in EnvironmentConfig
+    - Handled by _PSU in EnvironmentControl
+    - Best to measure actual output voltage rather than trust setting
+- Add Tamalero tests
+    - Settings stored in TestSettings (under Criterion)
+    - Handled by new class in EnvironmentControl
+    - Will require calling existing Tamalero scripts
+    - Monitor/measure output and eval PASS/FAIL?
+- Add interlock + DAQ tests
+    - Config stored in EnvironmentConfig (under new classes)
+    - Settings stored in TestSettings (under Criterion)
+    - Handled by new class in EnvironmentControl
+    - Will require calling custom scripts for controlling interlock, due to the
+        unlimited variety of methods for toggling a physical pin
+- Add support for PSU control over AnaGate CAN
+    - For us, specifically AnaGate CAN over IP
+    - i.e. protocol = "IP", interface = "AnaGate (CAN)"
+- TBD: Add cold box control
+    - Will again require calling custom scripts to keep things generalized
+
+QoL Features ==========
+
+- EnvironmentControl: Add log verbosity
+- EnvironmentControl: Add print colors
+- EnvironmentControl: Add log-to-file
+- Add a GUI!

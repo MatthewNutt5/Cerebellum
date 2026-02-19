@@ -16,9 +16,6 @@ Definitions
 
 This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
-TODO: add PSU dependencies to PSUConfig
-TODO: support for interlock, DAQs, (cold box?)
-TODO: add more interfaces (how do we handle CAN?)
 """
 
 from json import dump, load
