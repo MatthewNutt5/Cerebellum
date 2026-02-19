@@ -22,8 +22,6 @@ class TestSettings:
         self.tempEnable         = False             # Check for RTD temp before starting test?
         self.maxTemp            = -30.0             # RTD must measure below this temp (Celsius) before starting test
         self.PSUSettingsList    = []                # List of PSUSettings objects
-        self.PSUSettingsList.append(PSUSettings())  # First PSU; LVPS
-        self.PSUSettingsList.append(PSUSettings())  # Second PSU; HVPS
         self.criteriaList       = []                # List of Criterion objects
 
     """
