@@ -9,17 +9,20 @@ This file also contains several helper classes and functions.
 TODO: add CC/CV command to _PSU
 TODO: implement CC/CV in runTest
 TODO: implement enable/disable in runTest
+TODO: add color to print statements
+TODO: add verbosity levels
 """
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
-from TestSettings import TestSettings, Criterion
+from TestSettings import TestSettings, PSUSettings, Criterion
 import serial, socketscpi, time, re
 
 SCPI_WRITE_DELAY = 0.1
 
 def runTest(config: EnvironmentConfig, settings: TestSettings):
     
-    # Initialize all PSUs 
+    # Initialize all PSUs
+    print()
     print("Intializing PSUs ==========")
     PSUList = []
     for idx, psu in enumerate(config.PSUConfigList):
@@ -51,6 +54,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     print()
 
     # Turn on all PSUs
+    print("Enabling PSUs ==========")
     for idx, psu in enumerate(PSUList):
         print(f"Enabling PSU #{idx} -----")
         psu.turnOn()
@@ -58,11 +62,43 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     # Report and wait for user input
     print()
     print("All PSUs enabled successfully.")
-    print("Verify the PSUs are behaving as expected before continuing. (Next step: Checking criteria)")
+    print("Verify the PSUs are behaving as expected before continuing. (Next step: Checking test criteria)")
     input("Press Enter to continue...")
     print()
 
     # Check all criteria
+    print("Checking test criteria ==========")
+    for idx, criterion in enumerate(settings.criteriaList):
+        print(f"Checking criterion #{idx} -----")
+        if (criterion.criterionType == "PSUCurrent"):
+            if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
+                print("PASS")
+            else:
+                print("FAIL")
+        elif (criterion.criterionType == "PSUVoltage"):
+            if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
+                print("PASS")
+            else:
+                print("FAIL")
+        else:
+            raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
+
+    # Report and wait for user input
+    print()
+    print("All criteria checked successfully. (Next step: Disabling PSUs)")
+    input("Press Enter to continue...")
+    print()
+
+    # Turn off all PSUs
+    print("Disabling PSUs ==========")
+    for idx, psu in enumerate(PSUList):
+        print(f"Disabling PSU #{idx} -----")
+        psu.turnOff()
+
+    print()
+    print("All PSUs disabled successfully. Test complete.")
+    print()
+
 
 
 """
@@ -128,7 +164,8 @@ class _PSU:
             if not self.socket:
                 raise RuntimeError(f"IP socket {self.config.IP} is not open.")
             return self.socket.query(cmd)
-        return ""
+        else:
+            raise ValueError(f"Invalid protocol value: {self.config.protocol}")
     
     # Send an SCPI command without reading a response
     def _writeSCPI(self, cmd: str):
@@ -143,6 +180,8 @@ class _PSU:
             if not self.socket:
                 raise RuntimeError(f"IP socket {self.config.IP} is not open.")
             self.socket.write(cmd)
+        else:
+            raise ValueError(f"Invalid protocol value: {self.config.protocol}")
 
         time.sleep(SCPI_WRITE_DELAY)
     
@@ -152,47 +191,66 @@ class _PSU:
     def getIDN(self):
         if (self.config.interface == "SCPI"):
             return self._querySCPI("*IDN?\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
     
     def getVersion(self):
         if (self.config.interface == "SCPI"):
             return self._querySCPI("SYST:VERS?\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
     
     def setVoltage(self, voltage: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             self._writeSCPI(f"VOLT {voltage}\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
 
     def setCurrent(self, current: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             self._writeSCPI(f"CURR {current}\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
     
     def measureVoltage(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             return _parseFloatSCPI(self._querySCPI("MEAS:VOLT?\n"))
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
 
     def measureCurrent(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             return _parseFloatSCPI(self._querySCPI("MEAS:CURR?\n"))
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
+        
         
     def turnOff(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             self._writeSCPI(f"OUTP:STAT 0\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
 
     def turnOn(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
             self._writeSCPI(f"OUTP:STAT 1\n")
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
 
 
 
 # Extract a float (e.g. voltage) from a decoded SCPI response
 def _parseFloatSCPI(response: str):
     match = re.search(r"[-+]?\d*\.?\d+", response)
-    return float(match.group(0)) if match else None
+    if not match:
+        raise RuntimeError(f"Unable to locate value in response: {response}")
+    return float(match.group(0))
 
 
 
@@ -200,5 +258,22 @@ def _parseFloatSCPI(response: str):
 Criterion Evaluation ===========================================================
 """
 
-#def _evalPSUVoltage(criterion: Criterion, psu: _PSU):
+def _evalPSUVoltage(criterion: Criterion, psu: _PSU):
+    print(f"Voltage of PSU #{criterion.PSUidx} must be {criterion.ineq} {criterion.PSUVoltage} V.")
+    measured = psu.measureVoltage()
+    print(f"Measured voltage of PSU #{criterion.PSUidx}: {measured} V")
+    if ((measured < criterion.PSUVoltage and criterion.ineq == "<")
+        or (measured > criterion.PSUVoltage and criterion.ineq == ">")):
+        return True
+    else:
+        return False
 
+def _evalPSUCurrent(criterion: Criterion, psu: _PSU):
+    print(f"Current of PSU #{criterion.PSUidx} must be {criterion.ineq} {criterion.PSUCurrent} A.")
+    measured = psu.measureCurrent()
+    print(f"Measured current of PSU #{criterion.PSUidx}: {measured} A")
+    if ((measured < criterion.PSUCurrent and criterion.ineq == "<")
+        or (measured > criterion.PSUCurrent and criterion.ineq == ">")):
+        return True
+    else:
+        return False
