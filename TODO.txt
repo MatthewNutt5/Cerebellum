@@ -1,6 +1,5 @@
 Key Features ==========
 
-- Add PSU test script for runTest
 - EnvironmentControl: Add CC/CV control to PSUs 
 - EnvironmentControl: Add Enable/Disable to PSUs
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
