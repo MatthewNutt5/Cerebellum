@@ -21,8 +21,12 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     print("Intializing PSUs ==========")
     PSUList = []
     for idx, psu in enumerate(config.PSUConfigList):
-        print(f"Initializing PSU #{idx} -----")
-        PSUList.append(_PSU(psu))
+        if (settings.PSUSettingsList[idx].enable):
+            print(f"Initializing PSU #{idx}")
+            PSUList.append(_PSU(psu))
+        else:
+            print(f"PSU #{idx} is disabled, skipping initialization")
+            PSUList.append(None)
 
     # Report and wait for user input
     print()
@@ -34,12 +38,13 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     # Set all PSUs to their assigned settings
     print("Setting PSUs to assigned levels ==========")
     for idx, (psu, setting) in enumerate(zip(PSUList, settings.PSUSettingsList)):
-        print(f"Initializing PSU #{idx} -----")
-        print(f"Voltage: {setting.voltage}")
-        print(f"Current: {setting.current}")
-        psu.turnOff()
-        psu.setVoltage(setting.voltage)
-        psu.setCurrent(setting.current)
+        if psu:
+            print(f"Setting PSU #{idx} -----")
+            print(f"Voltage: {setting.voltage}")
+            print(f"Current: {setting.current}")
+            psu.turnOff()
+            psu.setVoltage(setting.voltage)
+            psu.setCurrent(setting.current)
     
     # Report and wait for user input
     print()
@@ -51,32 +56,36 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     # Turn on all PSUs
     print("Enabling PSUs ==========")
     for idx, psu in enumerate(PSUList):
-        print(f"Enabling PSU #{idx} -----")
-        psu.turnOn()
+        if psu:
+            print(f"Enabling PSU #{idx} -----")
+            psu.turnOn()
 
     # Report and wait for user input
     print()
     print("All PSUs enabled successfully.")
-    print("Verify the PSUs are behaving as expected before continuing. (Next step: Checking test criteria)")
+    print("Verify the PSUs are behaving as expected before continuing. (Next step: Evaluating test criteria)")
     input("Press Enter to continue...")
     print()
 
-    # Check all criteria
-    print("Checking test criteria ==========")
+    # Eval all criteria
+    print("Evaluating test criteria ==========")
     for idx, criterion in enumerate(settings.criteriaList):
-        print(f"Checking criterion #{idx} -----")
-        if (criterion.criterionType == "PSUCurrent"):
-            if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
-                print("PASS")
+        if PSUList[criterion.PSUidx]:
+            print(f"Evaluating criterion #{idx} -----")
+            if (criterion.criterionType == "PSUCurrent"):
+                if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
+                    print("PASS")
+                else:
+                    print("FAIL")
+            elif (criterion.criterionType == "PSUVoltage"):
+                if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
+                    print("PASS")
+                else:
+                    print("FAIL")
             else:
-                print("FAIL")
-        elif (criterion.criterionType == "PSUVoltage"):
-            if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
-                print("PASS")
-            else:
-                print("FAIL")
+                raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
         else:
-            raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
+            print(f"Criterion #{idx} refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation -----")
 
     # Report and wait for user input
     print()
@@ -87,8 +96,9 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     # Turn off all PSUs
     print("Disabling PSUs ==========")
     for idx, psu in enumerate(PSUList):
-        print(f"Disabling PSU #{idx} -----")
-        psu.turnOff()
+        if psu:
+            print(f"Disabling PSU #{idx} -----")
+            psu.turnOff()
 
     print()
     print("All PSUs disabled successfully. Test complete.")
