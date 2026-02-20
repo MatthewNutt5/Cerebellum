@@ -64,7 +64,6 @@ class PSUSettings:
             self.__dict__ = vars_dict.copy()
         else:
             self.enable     = True      # Is this power supply enabled for this test?
-            self.constCurr  = False     # Will the LVPS run in CC mode? (False = CV)
             self.voltage    = 0.0       # If CV, set voltage to this; if CC, this is voltage limit
             self.current    = 0.0       # If CV, this is current limit; if CC, set current to this
 

@@ -1,6 +1,5 @@
 Key Features ==========
 
-- EnvironmentControl: Add CC/CV control to PSUs 
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
     - Config stored in EnvironmentConfig
     - Handled by _PSU in EnvironmentControl
