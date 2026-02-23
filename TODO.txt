@@ -18,6 +18,10 @@ Key Features ==========
 - Add support for PSU control over AnaGate CAN
     - For us, specifically AnaGate CAN over IP
     - i.e. protocol = "IP", interface = "AnaGate (CAN)"
+- Add RB module enable/disable
+    - What if you wanted to check the current consumption when a different # of
+        modules are selected? Would be nice to automate this
+    - Would probably require writing custom Tamalero scripts
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
 
