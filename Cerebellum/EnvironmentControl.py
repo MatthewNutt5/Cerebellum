@@ -11,98 +11,112 @@ This file also contains several helper classes and functions.
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, PSUSettings, Criterion
 import serial, socketscpi, time, re
+import logging, signal
 
 SCPI_WRITE_DELAY = 0.1
 
+"""
+Main Test Function =============================================================
+"""
+
 def runTest(config: EnvironmentConfig, settings: TestSettings):
     
-    # Initialize all PSUs
-    print()
-    print("Intializing PSUs ==========")
-    PSUList = []
-    for idx, psu in enumerate(config.PSUConfigList):
-        if (settings.PSUSettingsList[idx].enable):
-            print(f"Initializing PSU #{idx}")
-            PSUList.append(_PSU(psu))
-        else:
-            print(f"PSU #{idx} is disabled, skipping initialization")
-            PSUList.append(None)
+    # Attempt to run the regular program sequence
+    try:
 
-    # Report and wait for user input
-    print()
-    print("All PSUs initialized successfully.")
-    print("Verify the credentials appear as expected before continuing. (Next step: Setting PSUs to assigned levels)")
-    input("Press Enter to continue...")
-    print()
-
-    # Set all PSUs to their assigned settings
-    print("Setting PSUs to assigned levels ==========")
-    for idx, (psu, setting) in enumerate(zip(PSUList, settings.PSUSettingsList)):
-        if psu:
-            print(f"Setting PSU #{idx} -----")
-            print(f"Voltage: {setting.voltage}")
-            print(f"Current: {setting.current}")
-            psu.turnOff()
-            psu.setVoltage(setting.voltage)
-            psu.setCurrent(setting.current)
-    
-    # Report and wait for user input
-    print()
-    print("All PSUs set successfully.")
-    print("Verify the settings appear as expected before continuing. (Next step: Enabling PSUs)")
-    input("Press Enter to continue...")
-    print()
-
-    # Turn on all PSUs
-    print("Enabling PSUs ==========")
-    for idx, psu in enumerate(PSUList):
-        if psu:
-            print(f"Enabling PSU #{idx} -----")
-            psu.turnOn()
-
-    # Report and wait for user input
-    print()
-    print("All PSUs enabled successfully.")
-    print("Verify the PSUs are behaving as expected before continuing. (Next step: Evaluating test criteria)")
-    input("Press Enter to continue...")
-    print()
-
-    # Eval all criteria
-    print("Evaluating test criteria ==========")
-    for idx, criterion in enumerate(settings.criteriaList):
-        if PSUList[criterion.PSUidx]:
-            print(f"Evaluating criterion #{idx} -----")
-            if (criterion.criterionType == "PSUCurrent"):
-                if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
-                    print("PASS")
-                else:
-                    print("FAIL")
-            elif (criterion.criterionType == "PSUVoltage"):
-                if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
-                    print("PASS")
-                else:
-                    print("FAIL")
+        # Initialize all PSUs
+        print()
+        print("Intializing PSUs ==========")
+        PSUList = []
+        for idx, psu in enumerate(config.PSUConfigList):
+            if (settings.PSUSettingsList[idx].enable):
+                print(f"Initializing PSU #{idx}")
+                PSUList.append(_PSU(psu))
             else:
-                raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
-        else:
-            print(f"Criterion #{idx} refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation -----")
+                print(f"PSU #{idx} is disabled, skipping initialization")
+                PSUList.append(None)
 
-    # Report and wait for user input
-    print()
-    print("All criteria checked successfully. (Next step: Disabling PSUs)")
-    input("Press Enter to continue...")
-    print()
+        # Report and wait for user input
+        print()
+        print("All PSUs initialized successfully.")
+        print("Verify the credentials appear as expected before continuing. (Next step: Setting PSUs to assigned levels)")
+        input("Press Enter to continue...")
+        print()
 
-    # Turn off all PSUs
-    print("Disabling PSUs ==========")
-    for idx, psu in enumerate(PSUList):
-        if psu:
-            print(f"Disabling PSU #{idx} -----")
-            psu.turnOff()
+        # Set all PSUs to their assigned settings
+        print("Setting PSUs to assigned levels ==========")
+        for idx, (psu, setting) in enumerate(zip(PSUList, settings.PSUSettingsList)):
+            if psu:
+                print(f"Setting PSU #{idx} -----")
+                print(f"Voltage: {setting.voltage}")
+                print(f"Current: {setting.current}")
+                psu.turnOff()
+                psu.setVoltage(setting.voltage)
+                psu.setCurrent(setting.current)
+        
+        # Report and wait for user input
+        print()
+        print("All PSUs set successfully.")
+        print("Verify the settings appear as expected before continuing. (Next step: Enabling PSUs)")
+        input("Press Enter to continue...")
+        print()
 
-    print()
-    print("All PSUs disabled successfully. Test complete.")
-    print()
+        # Turn on all PSUs
+        print("Enabling PSUs ==========")
+        for idx, psu in enumerate(PSUList):
+            if psu:
+                print(f"Enabling PSU #{idx} -----")
+                psu.turnOn()
+
+        # Report and wait for user input
+        print()
+        print("All PSUs enabled successfully.")
+        print("Verify the PSUs are behaving as expected before continuing. (Next step: Evaluating test criteria)")
+        input("Press Enter to continue...")
+        print()
+
+        # Eval all criteria
+        print("Evaluating test criteria ==========")
+        for idx, criterion in enumerate(settings.criteriaList):
+            if PSUList[criterion.PSUidx]:
+                print(f"Evaluating criterion #{idx} -----")
+                if (criterion.criterionType == "PSUCurrent"):
+                    if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
+                        print("PASS")
+                    else:
+                        print("FAIL")
+                elif (criterion.criterionType == "PSUVoltage"):
+                    if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
+                        print("PASS")
+                    else:
+                        print("FAIL")
+                else:
+                    raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
+            else:
+                print(f"Criterion #{idx} refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation -----")
+
+        # Report and wait for user input
+        print()
+        print("All criteria checked successfully. (Next step: Disabling PSUs)")
+        input("Press Enter to continue...")
+        print()
+    
+    # If there are any errors in normal operation, skip to disabling the PSUs
+    # Block all external interrupts while doing so, and keep disabling the other
+    # PSUs even if one of them fails
+    finally:
+        with _DelayedInterrupt([signal.SIGINT, signal.SIGTERM]):
+            # Turn off all PSUs
+            print("Disabling PSUs ==========")
+            for idx, psu in enumerate(PSUList):
+                try:
+                    if psu:
+                        print(f"Disabling PSU #{idx} -----")
+                        psu.turnOff()
+                except Exception as e:
+                    logging.warning(f"While disabling PSU #{idx}, an exception was encountered: {e}")
+                    pass
+            print()
 
 
 
@@ -139,7 +153,7 @@ class _PSU:
         print(f"IDN: {self.getIDN()}")
         print(f"Version: {self.getVersion()}")
     
-    # Attempt to close any open connections
+    # Attempt to close any open connections when deallocated
     def __del__(self):
         if ("ser" in vars(self)) and self.ser and self.ser.is_open:
             self.ser.close()
@@ -189,7 +203,7 @@ class _PSU:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
 
         time.sleep(SCPI_WRITE_DELAY)
-    
+
     """
     PSU control commands ==========
     """
@@ -198,13 +212,13 @@ class _PSU:
             return self._querySCPI("*IDN?\n")
         else:
             raise ValueError(f"Invalid interface value: {self.config.interface}")
-    
+
     def getVersion(self):
         if (self.config.interface == "SCPI"):
             return self._querySCPI("SYST:VERS?\n")
         else:
             raise ValueError(f"Invalid interface value: {self.config.interface}")
-    
+
     def setVoltage(self, voltage: float):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
@@ -218,7 +232,21 @@ class _PSU:
             self._writeSCPI(f"CURR {current}\n")
         else:
             raise ValueError(f"Invalid interface value: {self.config.interface}")
-    
+
+    def getVoltage(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            return _parseFloatSCPI(self._querySCPI("VOLT?\n"))
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
+
+    def getCurrent(self):
+        if (self.config.interface == "SCPI"):
+            self._writeSCPI(f"INST:SEL {self.config.channel}\n")
+            return _parseFloatSCPI(self._querySCPI("CURR?\n"))
+        else:
+            raise ValueError(f"Invalid interface value: {self.config.interface}")
+
     def measureVoltage(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
@@ -232,8 +260,7 @@ class _PSU:
             return _parseFloatSCPI(self._querySCPI("MEAS:CURR?\n"))
         else:
             raise ValueError(f"Invalid interface value: {self.config.interface}")
-        
-        
+
     def turnOff(self):
         if (self.config.interface == "SCPI"):
             self._writeSCPI(f"INST:SEL {self.config.channel}\n")
@@ -282,3 +309,34 @@ def _evalPSUCurrent(criterion: Criterion, psu: _PSU):
         return True
     else:
         return False
+
+
+
+"""
+Interrupt Delayer ==============================================================
+"""
+
+# Adapted from https://gist.github.com/tcwalther/ae058c64d5d9078a9f333913718bba95
+class _DelayedInterrupt(object):
+    def __init__(self, signals):
+        if not isinstance(signals, list) and not isinstance(signals, tuple):
+            signals = [signals]
+        self.sigs = signals        
+
+    def __enter__(self):
+        self.signal_received = {}
+        self.old_handlers = {}
+        for sig in self.sigs:
+            self.signal_received[sig] = False
+            self.old_handlers[sig] = signal.getsignal(sig)
+            def handler(s, frame, sig=sig):
+                self.signal_received[sig] = (s, frame)
+                logging.info(f"Signal {s} received; delaying")
+            self.old_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, handler)
+
+    def __exit__(self, type, value, traceback):
+        for sig in self.sigs:
+            signal.signal(sig, self.old_handlers[sig])
+            if self.signal_received[sig] and self.old_handlers[sig]:
+                self.old_handlers[sig](*self.signal_received[sig])

@@ -1,5 +1,10 @@
 Key Features ==========
 
+- Add PSU setting validation
+    - Read back the current settings of the PSU and make sure they match the
+        intended settings
+    - Some PSUs will ignore the incoming setting if it falls out of bounds, this
+        identifies those cases
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
     - Config stored in EnvironmentConfig
     - Handled by _PSU in EnvironmentControl
@@ -28,6 +33,6 @@ Key Features ==========
 QoL Features ==========
 
 - EnvironmentControl: Add log verbosity
-- EnvironmentControl: Add print colors
 - EnvironmentControl: Add log-to-file
+    - Use the logging module for both of these
 - Add a GUI!
