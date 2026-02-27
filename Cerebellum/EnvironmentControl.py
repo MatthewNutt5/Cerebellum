@@ -55,6 +55,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
                 actualSetVoltage = psu.getVoltage()
                 if (actualSetVoltage != setting.voltage):
                     raise RuntimeError(f"Voltage setting of PSU #{idx} ({actualSetVoltage} V) does not match expected setting ({setting.voltage} V). The desired setting may be out-of-range for this PSU.")
+                psu.setCurrent(setting.current)
                 actualSetCurrent = psu.getCurrent()
                 if (actualSetCurrent != setting.current):
                     raise RuntimeError(f"Current setting of PSU #{idx} ({actualSetCurrent} A) does not match expected setting ({setting.current} A). The desired setting may be out-of-range for this PSU.")
