@@ -13,8 +13,10 @@ if readJSON:
     config.readJSON("config.json")
 else:
     config.PSUConfigList.append(PSUConfig())
-    config.PSUConfigList[0].protocol = "IP"
-    config.PSUConfigList[0].IP = "192.168.0.40"
+    # config.PSUConfigList[0].protocol = "IP"
+    # config.PSUConfigList[0].IP = "192.168.0.40"
+    config.PSUConfigList[0].protocol = "Serial"
+    config.PSUConfigList[0].COM = "COM7"
     config.PSUConfigList[0].interface = "SCPI"
     config.PSUConfigList[0].channel = 0
     config.writeJSON("config.json")

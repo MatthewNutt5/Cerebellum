@@ -52,7 +52,13 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
                 print(f"Current: {setting.current}")
                 psu.turnOff()
                 psu.setVoltage(setting.voltage)
-                psu.setCurrent(setting.current)
+                actualSetVoltage = psu.getVoltage()
+                if (actualSetVoltage != setting.voltage):
+                    raise RuntimeError(f"Voltage setting of PSU #{idx} ({actualSetVoltage} V) does not match expected setting ({setting.voltage} V). The desired setting may be out-of-range for this PSU.")
+                actualSetCurrent = psu.getCurrent()
+                if (actualSetCurrent != setting.current):
+                    raise RuntimeError(f"Current setting of PSU #{idx} ({actualSetCurrent} A) does not match expected setting ({setting.current} A). The desired setting may be out-of-range for this PSU.")
+                    
         
         # Report and wait for user input
         print()
@@ -99,7 +105,6 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
         print()
         print("All criteria checked successfully. (Next step: Disabling PSUs)")
         input("Press Enter to continue...")
-        print()
     
     # If there are any errors in normal operation, skip to disabling the PSUs
     # Block all external interrupts while doing so, and keep disabling the other
@@ -107,6 +112,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
     finally:
         with _DelayedInterrupt([signal.SIGINT, signal.SIGTERM]):
             # Turn off all PSUs
+            print()
             print("Disabling PSUs ==========")
             for idx, psu in enumerate(PSUList):
                 try:
