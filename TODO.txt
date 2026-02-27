@@ -1,5 +1,13 @@
 Key Features ==========
 
+- Refactor EnvironmentControl
+    - Put _PSU into its own file, this will be helpful as it will need more
+        development
+    - Move parts of runTest into their own, self-contained functions
+- Change "CriteriaList" into "EventList"
+    - An event could be a criterion evaluation, a change in PSU settings, a
+        Tamalero script, a DAQ waveform retrieval, an interlock trigger, etc.
+    - Modify runTest to run a main loop on this EventList
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
     - Config stored in EnvironmentConfig
     - Handled by _PSU in EnvironmentControl
