@@ -298,21 +298,19 @@ Criterion Evaluation ===========================================================
 """
 
 def _evalPSUVoltage(criterion: Criterion, psu: _PSU):
-    print(f"Voltage of PSU #{criterion.PSUidx} must be {criterion.ineq} {criterion.PSUVoltage} V.")
+    print(f"Measured voltage of PSU #{criterion.PSUidx} must be >= {criterion.PSUVoltageLow} V and <= {criterion.PSUVoltageHigh} V.")
     measured = psu.measureVoltage()
     print(f"Measured voltage of PSU #{criterion.PSUidx}: {measured} V")
-    if ((measured < criterion.PSUVoltage and criterion.ineq == "<")
-        or (measured > criterion.PSUVoltage and criterion.ineq == ">")):
+    if (measured >= criterion.PSUVoltageLow) and (measured <= criterion.PSUVoltageHigh):
         return True
     else:
         return False
 
 def _evalPSUCurrent(criterion: Criterion, psu: _PSU):
-    print(f"Current of PSU #{criterion.PSUidx} must be {criterion.ineq} {criterion.PSUCurrent} A.")
+    print(f"Measured current of PSU #{criterion.PSUidx} must be >= {criterion.PSUCurrentLow} A and <= {criterion.PSUCurrentHigh} A.")
     measured = psu.measureCurrent()
-    print(f"Measured current of PSU #{criterion.PSUidx}: {measured} A")
-    if ((measured < criterion.PSUCurrent and criterion.ineq == "<")
-        or (measured > criterion.PSUCurrent and criterion.ineq == ">")):
+    print(f"Measured current of PSU #{criterion.PSUidx}: {measured} V")
+    if (measured >= criterion.PSUCurrentLow) and (measured <= criterion.PSUCurrentHigh):
         return True
     else:
         return False
