@@ -1,8 +1,6 @@
 Key Features ==========
 
 - Refactor EnvironmentControl
-    - Put _PSU into its own file, this will be helpful as it will need more
-        development
     - Move parts of runTest into their own, self-contained functions
 - Change "CriteriaList" into "EventList"
     - An event could be a criterion evaluation, a change in PSU settings, a
