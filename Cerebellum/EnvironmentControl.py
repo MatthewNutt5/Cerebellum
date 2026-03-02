@@ -9,7 +9,8 @@ This file also contains several helper classes and functions.
 """
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
-from TestSettings import TestSettings, PSUSettings, Criterion
+from TestSettings import TestSettings, PSUSettings
+from TestSettings import Event, PSUVoltageEvent, PSUCurrentEvent
 from _PSU import _PSU
 
 import logging, signal
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 """
-Main Test Functions ============================================================
+Main Function + Helpers ========================================================
 """
 
 def runTest(config: EnvironmentConfig, settings: TestSettings):
@@ -59,9 +60,9 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
         input("Press Enter to continue...")
         logging.info("")
 
-        # Eval all criteria
-        logging.info("Evaluating test criteria ==========")
-        _evalCriteria(PSUList, settings.criteriaList)
+        # Execute all events
+        logging.info("Executing events ==========")
+        _execEvents(PSUList, settings.eventList)
 
         # Report and wait for user input
         logging.info("")
@@ -123,46 +124,53 @@ def _enablePSUList(PSUList: list[_PSU]):
             logging.info(f"Enabling PSU #{idx} -----")
             psu.turnOn()
 
-def _evalCriteria(PSUList: list[_PSU], criteriaList: list[Criterion]):
-    for idx, criterion in enumerate(criteriaList):
-        if PSUList[criterion.PSUidx]:
-            logging.info(f"Evaluating criterion #{idx} -----")
-            if (criterion.criterionType == "PSUCurrent"):
-                if (_evalPSUCurrent(criterion, PSUList[criterion.PSUidx])):
-                    logging.info("PASS")
-                else:
-                    logging.info("FAIL")
-            elif (criterion.criterionType == "PSUVoltage"):
-                if (_evalPSUVoltage(criterion, PSUList[criterion.PSUidx])):
-                    logging.info("PASS")
-                else:
-                    logging.info("FAIL")
+def _execEvents(PSUList: list[_PSU], eventList: list[Event]):
+    for idx, event in enumerate(eventList):
+        logging.info(f"Executing event #{idx} -----")
+        if isinstance(event, PSUVoltageEvent):
+            if (_evalPSUVoltage(event, PSUList[event.PSUidx])):
+                logging.info("PASS")
             else:
-                raise ValueError(f"Invalid criterionType value: {criterion.criterionType}")
+                logging.info("FAIL")
+        elif isinstance(event, PSUCurrentEvent):
+            if (_evalPSUCurrent(event, PSUList[event.PSUidx])):
+                logging.info("PASS")
+            else:
+                logging.info("FAIL")
         else:
-            logging.warning(f"Criterion #{idx} refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation -----")
+            raise ValueError(f"Invalid Event type: {type(event)}")
+
+
 
 """
-Criterion Evaluation ===========================================================
+Event Handlers =================================================================
 """
 
-def _evalPSUVoltage(criterion: Criterion, psu: _PSU):
-    logging.info(f"Measured voltage of PSU #{criterion.PSUidx} must be >= {criterion.PSUVoltageLow} V and <= {criterion.PSUVoltageHigh} V.")
-    measured = psu.measureVoltage()
-    logging.info(f"Measured voltage of PSU #{criterion.PSUidx}: {measured} V")
-    if (measured >= criterion.PSUVoltageLow) and (measured <= criterion.PSUVoltageHigh):
-        return True
+def _evalPSUVoltage(event: PSUVoltageEvent, psu: _PSU):
+    if psu:
+        logging.info(f"Measured voltage of PSU #{event.PSUidx} must be >= {event.PSUVoltageLow} V and <= {event.PSUVoltageHigh} V.")
+        measured = psu.measureVoltage()
+        logging.info(f"Measured voltage of PSU #{event.PSUidx}: {measured} V")
+        if (measured >= event.PSUVoltageLow) and (measured <= event.PSUVoltageHigh):
+            return True
+        else:
+            return False
     else:
-        return False
+        logging.warning(f"PSUVoltageEvent refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation.")
+        return None
 
-def _evalPSUCurrent(criterion: Criterion, psu: _PSU):
-    logging.info(f"Measured current of PSU #{criterion.PSUidx} must be >= {criterion.PSUCurrentLow} A and <= {criterion.PSUCurrentHigh} A.")
-    measured = psu.measureCurrent()
-    logging.info(f"Measured current of PSU #{criterion.PSUidx}: {measured} V")
-    if (measured >= criterion.PSUCurrentLow) and (measured <= criterion.PSUCurrentHigh):
-        return True
+def _evalPSUCurrent(event: PSUCurrentEvent, psu: _PSU):
+    if psu:
+        logging.info(f"Measured current of PSU #{event.PSUidx} must be >= {event.PSUCurrentLow} A and <= {event.PSUCurrentHigh} A.")
+        measured = psu.measureCurrent()
+        logging.info(f"Measured current of PSU #{event.PSUidx}: {measured} V")
+        if (measured >= event.PSUCurrentLow) and (measured <= event.PSUCurrentHigh):
+            return True
+        else:
+            return False
     else:
-        return False
+        logging.warning(f"PSUCurrentEvent refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation.")
+        return None
 
 
 

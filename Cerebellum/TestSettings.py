@@ -19,10 +19,8 @@ class TestSettings:
 
     def __init__(self):
         
-        self.tempEnable         = False             # Check for RTD temp before starting test?
-        self.maxTemp            = -30.0             # RTD must measure below this temp (Celsius) before starting test
-        self.PSUSettingsList    = []                # List of PSUSettings objects
-        self.criteriaList       = []                # List of Criterion objects
+        self.PSUSettingsList    = []    # List of PSUSettings objects
+        self.eventList          = []    # List of Event objects
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -32,7 +30,7 @@ class TestSettings:
         # Convert all objects to dicts
         vars_dict = vars(self).copy()
         vars_dict["PSUSettingsList"] = [vars(PSU) for PSU in self.PSUSettingsList]
-        vars_dict["criteriaList"] = [vars(criterion) for criterion in self.criteriaList]
+        #vars_dict["criteriaList"] = [vars(criterion) for criterion in self.criteriaList]
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -52,8 +50,8 @@ class TestSettings:
         for index, PSU in enumerate(self.PSUSettingsList):
             self.PSUSettingsList[index] = PSUSettings(vars_dict=PSU)
 
-        for index, criterion in enumerate(self.criteriaList):
-            self.criteriaList[index] = Criterion(criterion["criterionType"], vars_dict=criterion)
+        # for index, criterion in enumerate(self.criteriaList):
+            # self.criteriaList[index] = Criterion(criterion["criterionType"], vars_dict=criterion)
 
 
 
@@ -64,28 +62,30 @@ class PSUSettings:
             self.__dict__ = vars_dict.copy()
         else:
             self.enable     = True      # Is this power supply enabled for this test?
-            self.voltage    = 0.0       # If CV, set voltage to this; if CC, this is voltage limit
-            self.current    = 0.0       # If CV, this is current limit; if CC, set current to this
+            self.voltage    = 0.0       # Voltage setting
+            self.current    = 0.0       # Current setting
 
 
 
-class Criterion:
+class Event:
+    pass
 
-    def __init__(self, criterionType, vars_dict={}):
+class PSUVoltageEvent(Event):
+    def __init__(self, eventType, vars_dict={}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            
-            self.criterionType = criterionType
+            self.type = "PSUVoltageEvent"       # Object type (only used for JSON read/write)
+            self.PSUidx         = 0             # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
+            self.PSUVoltageLow  = 0.0           # The measured voltage must be <= this voltage
+            self.PSUVoltageHigh = float('inf')  # The measured voltage must be <= this voltage
 
-            # NOTE: Would use a match/case here, but that's only available with Python 3.10+
-            if (criterionType == "PSUCurrent"):
-                self.PSUidx         = 0             # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
-                self.PSUCurrentLow  = 0.0           # The measured current must be <= this current
-                self.PSUCurrentHigh = float('inf')  # The measured current must be <= this current
-            elif (criterionType == "PSUVoltage"):
-                self.PSUidx         = 0             # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
-                self.PSUVoltageLow  = 0.0           # The measured voltage must be <= this voltage
-                self.PSUVoltageHigh = float('inf')  # The measured voltage must be <= this voltage
-            else:
-                raise ValueError(f"Invalid criterionType value: {criterionType}")
+class PSUCurrentEvent(Event):
+    def __init__(self, eventType, vars_dict={}):
+        if vars_dict:
+            self.__dict__ = vars_dict.copy()
+        else:
+            self.type = "PSUCurrentEvent"       # Object type (only used for JSON read/write)
+            self.PSUidx         = 0             # Index of the PSU (0 = LVPS, 1 = HVPS, 2+ = Aux PSUs)
+            self.PSUCurrentLow  = 0.0           # The measured current must be <= this current
+            self.PSUCurrentHigh = float('inf')  # The measured current must be <= this current

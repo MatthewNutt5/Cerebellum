@@ -1,11 +1,10 @@
 Key Features ==========
 
-- Change "CriteriaList" into "EventList"
-    - An event could be a criterion evaluation, a change in PSU settings, a
-        Tamalero script, a DAQ waveform retrieval, an interlock trigger, etc.
-    - We will likely only have a few criterion types, so consider refactoring
-        Criterion into individual classes (e.g. PSUVoltageCriterion)
-    - Modify runTest to run a main loop on this EventList
+- Add new Event types
+    - PSU settings change
+    - Run arbitrary script (Tamalero)
+    - DAQ waveform retrieval
+    - Interlock trigger (+ DAQ waveform triggered by falling edge)
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
     - Config stored in EnvironmentConfig
     - Handled by _PSU in EnvironmentControl
@@ -30,6 +29,7 @@ Key Features ==========
     - Would probably require writing custom Tamalero scripts
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
+    - Could require a certain temperature reading before starting test
 
 QoL Features ==========
 
