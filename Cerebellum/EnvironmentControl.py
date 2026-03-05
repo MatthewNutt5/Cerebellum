@@ -10,7 +10,7 @@ This file also contains several helper classes and functions.
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, Event
-from TestSettings import PSUSettingEvent, EvalVoltageEvent, EvalCurrentEvent
+from TestSettings import SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent
 from PowerSupply import PowerSupply, createPowerSupply
 
 import logging, signal
@@ -87,7 +87,7 @@ def _initPSUList(PSUConfigList: list[PSUConfig]):
         PSUList.append(createPowerSupply(psu))
     return PSUList
 
-def _setPSUList(PSUSettingsList: list[PSUSettingEvent], PSUList: list[PowerSupply]):
+def _setPSUList(PSUSettingsList: list[SetPSUEvent], PSUList: list[PowerSupply]):
     for idx, event in enumerate(PSUSettingsList):
         logging.info(f"Executing PSU setting #{idx} -----")
         _setPSU(event, PSUList)
@@ -95,14 +95,14 @@ def _setPSUList(PSUSettingsList: list[PSUSettingEvent], PSUList: list[PowerSuppl
 def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]):
     for idx, event in enumerate(eventList):
         logging.info(f"Executing event #{idx} -----")
-        if isinstance(event, PSUSettingEvent):
+        if isinstance(event, SetPSUEvent):
             _setPSU(event, PSUList)
-        elif isinstance(event, EvalVoltageEvent):
+        elif isinstance(event, EvalPSUVoltageEvent):
             if (_evalPSUVoltage(event, PSUList[event.PSUidx])):
                 logging.info("PASS")
             else:
                 logging.info("FAIL")
-        elif isinstance(event, EvalCurrentEvent):
+        elif isinstance(event, EvalPSUCurrentEvent):
             if (_evalPSUCurrent(event, PSUList[event.PSUidx])):
                 logging.info("PASS")
             else:
@@ -116,8 +116,8 @@ def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]):
 Event Handlers =================================================================
 """
 
-def _setPSU(event: PSUSettingEvent, PSUList: list[PowerSupply]):
-    logging.info("PSUSettingEvent")
+def _setPSU(event: SetPSUEvent, PSUList: list[PowerSupply]):
+    logging.info("SetPSUEvent")
     psu = PSUList[event.PSUidx]
     if event.enable:
         logging.info(f"Setting channel {event.channel} of PSU #{event.PSUidx} to {event.voltage} V and {event.current} A.")
@@ -132,8 +132,8 @@ def _setPSU(event: PSUSettingEvent, PSUList: list[PowerSupply]):
     else:
         logging.info(f"Disabling channel {event.channel} of PSU #{event.PSUidx}.")
 
-def _evalPSUVoltage(event: EvalVoltageEvent, psu: PowerSupply):
-    logging.info("EvalVoltageEvent")
+def _evalPSUVoltage(event: EvalPSUVoltageEvent, psu: PowerSupply):
+    logging.info("EvalPSUVoltageEvent")
     logging.info(f"Measured voltage of PSU #{event.PSUidx} must be >= {event.VoltageLow} V and <= {event.VoltageHigh} V.")
     measured = psu.measureVoltage(event.channel)
     logging.info(f"Measured voltage of PSU #{event.PSUidx}: {measured} V")
@@ -142,8 +142,8 @@ def _evalPSUVoltage(event: EvalVoltageEvent, psu: PowerSupply):
     else:
         return False
 
-def _evalPSUCurrent(event: EvalCurrentEvent, psu: PowerSupply):
-    logging.info("EvalCurrentEvent")
+def _evalPSUCurrent(event: EvalPSUCurrentEvent, psu: PowerSupply):
+    logging.info("EvalPSUCurrentEvent")
     logging.info(f"Measured current of PSU #{event.PSUidx} must be >= {event.CurrentLow} A and <= {event.CurrentHigh} A.")
     measured = psu.measureCurrent(event.channel)
     logging.info(f"Measured current of PSU #{event.PSUidx}: {measured} V")
