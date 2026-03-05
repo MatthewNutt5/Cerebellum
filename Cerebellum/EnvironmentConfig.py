@@ -63,9 +63,10 @@ class PSUConfig:
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
+            self.name           = "Power Supply"    # Display name of the power supply
+            self.interface      = ""                # Communication interface (SCPI / Custom)
             self.protocol       = ""                # Communication protocol (IP / Serial)
             self.IP             = ""                # IP address
             self.COM            = ""                # COM port (e.g. /dev/ttyACM0, COM1)
             self.baudrate       = 115200            # COM baudrate
-            self.interface      = ""                # Software interface (SCPI / CAN)
-            self.channel        = 0                 # PSU channel number
+            self.implementation = ""                # Filepath to implementation for Custom interface

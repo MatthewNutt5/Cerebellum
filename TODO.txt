@@ -1,5 +1,12 @@
 Key Features ==========
 
+- Add support for custom implementations of _PSU
+    - Refactor _PSU into an interface class, allow the user to write their own
+        implementations
+    - Make a factory function for taking PSUConfig objects and turning them into
+        intialized instances of the right class
+    - Pass IP/Serial config data from PSUConfig to the implementation
+    - We will include implementations for Anagate CAN and CAEN HV
 - Add new Event types
     - PSU settings change
     - Run arbitrary script (Tamalero)
@@ -20,13 +27,7 @@ Key Features ==========
     - Handled by new class in EnvironmentControl
     - Will require calling custom scripts for controlling interlock, due to the
         unlimited variety of methods for toggling a physical pin
-- Add support for PSU control over AnaGate CAN
-    - For us, specifically AnaGate CAN over IP
-    - i.e. protocol = "IP", interface = "AnaGate (CAN)"
-- Add RB module enable/disable
-    - What if you wanted to check the current consumption when a different # of
-        modules are selected? Would be nice to automate this
-    - Would probably require writing custom Tamalero scripts
+- Add more software documentation
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
     - Could require a certain temperature reading before starting test

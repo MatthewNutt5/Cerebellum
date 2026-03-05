@@ -10,7 +10,7 @@ This file also contains several helper classes and functions.
 
 from EnvironmentConfig import EnvironmentConfig, PSUConfig
 from TestSettings import TestSettings, PSUSettings
-from TestSettings import Event, PSUVoltageEvent, PSUCurrentEvent
+from TestSettings import Event, EvalVoltageEvent, EvalCurrentEvent
 from _PSU import _PSU
 
 import logging, signal
@@ -62,7 +62,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
 
         # Execute all events
         logging.info("Executing events ==========")
-        _execEvents(PSUList, settings.eventList)
+        _execEvents(settings.eventList, PSUList)
 
         # Report and wait for user input
         logging.info("")
@@ -94,12 +94,8 @@ def runTest(config: EnvironmentConfig, settings: TestSettings):
 def _initPSUList(PSUConfigList: list[PSUConfig], PSUSettingsList: list[PSUSettings]):
     PSUList = []
     for idx, psu in enumerate(PSUConfigList):
-        if (PSUSettingsList[idx].enable):
-            logging.info(f"Initializing PSU #{idx}")
-            PSUList.append(_PSU(psu))
-        else:
-            logging.info(f"PSU #{idx} is disabled, skipping initialization")
-            PSUList.append(None)
+        logging.info(f"Initializing PSU #{idx}")
+        PSUList.append(_PSU(psu))
     return PSUList
 
 def _setPSUList(PSUList: list[_PSU], PSUSettingsList: list[PSUSettings]):
@@ -124,15 +120,15 @@ def _enablePSUList(PSUList: list[_PSU]):
             logging.info(f"Enabling PSU #{idx} -----")
             psu.turnOn()
 
-def _execEvents(PSUList: list[_PSU], eventList: list[Event]):
+def _execEvents(eventList: list[Event], PSUList: list[_PSU]):
     for idx, event in enumerate(eventList):
         logging.info(f"Executing event #{idx} -----")
-        if isinstance(event, PSUVoltageEvent):
+        if isinstance(event, EvalVoltageEvent):
             if (_evalPSUVoltage(event, PSUList[event.PSUidx])):
                 logging.info("PASS")
             else:
                 logging.info("FAIL")
-        elif isinstance(event, PSUCurrentEvent):
+        elif isinstance(event, EvalCurrentEvent):
             if (_evalPSUCurrent(event, PSUList[event.PSUidx])):
                 logging.info("PASS")
             else:
@@ -146,31 +142,23 @@ def _execEvents(PSUList: list[_PSU], eventList: list[Event]):
 Event Handlers =================================================================
 """
 
-def _evalPSUVoltage(event: PSUVoltageEvent, psu: _PSU):
-    if psu:
-        logging.info(f"Measured voltage of PSU #{event.PSUidx} must be >= {event.PSUVoltageLow} V and <= {event.PSUVoltageHigh} V.")
-        measured = psu.measureVoltage()
-        logging.info(f"Measured voltage of PSU #{event.PSUidx}: {measured} V")
-        if (measured >= event.PSUVoltageLow) and (measured <= event.PSUVoltageHigh):
-            return True
-        else:
-            return False
+def _evalPSUVoltage(event: EvalVoltageEvent, psu: _PSU):
+    logging.info(f"Measured voltage of PSU #{event.PSUidx} must be >= {event.VoltageLow} V and <= {event.VoltageHigh} V.")
+    measured = psu.measureVoltage()
+    logging.info(f"Measured voltage of PSU #{event.PSUidx}: {measured} V")
+    if (measured >= event.VoltageLow) and (measured <= event.VoltageHigh):
+        return True
     else:
-        logging.warning(f"PSUVoltageEvent refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation.")
-        return None
+        return False
 
-def _evalPSUCurrent(event: PSUCurrentEvent, psu: _PSU):
-    if psu:
-        logging.info(f"Measured current of PSU #{event.PSUidx} must be >= {event.PSUCurrentLow} A and <= {event.PSUCurrentHigh} A.")
-        measured = psu.measureCurrent()
-        logging.info(f"Measured current of PSU #{event.PSUidx}: {measured} V")
-        if (measured >= event.PSUCurrentLow) and (measured <= event.PSUCurrentHigh):
-            return True
-        else:
-            return False
+def _evalPSUCurrent(event: EvalCurrentEvent, psu: _PSU):
+    logging.info(f"Measured current of PSU #{event.PSUidx} must be >= {event.CurrentLow} A and <= {event.CurrentHigh} A.")
+    measured = psu.measureCurrent()
+    logging.info(f"Measured current of PSU #{event.PSUidx}: {measured} V")
+    if (measured >= event.CurrentLow) and (measured <= event.CurrentHigh):
+        return True
     else:
-        logging.warning(f"PSUCurrentEvent refers to a disabled PSU (#{criterion.PSUidx}), skipping evaluation.")
-        return None
+        return False
 
 
 
