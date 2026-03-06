@@ -27,9 +27,15 @@ class PSUConfigWidget(QGroupBox):
         self.baudrate_spin.setRange(0, 10000000)
         self.interface_edit = QComboBox()
         self.interface_edit.setEditable(False)
-        self.interface_edit.addItems(["SCPI", "CAN"])
+        self.interface_edit.addItems(["SCPI", "Custom"])
         self.channel_spin = QSpinBox()
         self.channel_spin.setRange(0, 1000)
+
+        # Custom Implementation Fields
+        self.implementation_edit = QLineEdit()
+        self.implementation_edit.setReadOnly(True)
+        self.implementation_button = QPushButton("Upload File")
+        self.implementation_button.clicked.connect(self.upload_implementation)
 
         # Populate with data if provided
         if psu_config:
@@ -40,6 +46,7 @@ class PSUConfigWidget(QGroupBox):
             self.baudrate_spin.setValue(int(psu_config.baudrate))
             self.interface_edit.setCurrentText(str(psu_config.interface))
             self.channel_spin.setValue(int(psu_config.channel))
+            self.implementation_edit.setText(str(getattr(psu_config, 'implementation', '')))
         else:
             self.baudrate_spin.setValue(115200)
 
@@ -52,10 +59,38 @@ class PSUConfigWidget(QGroupBox):
         self.add_field("Interface:", self.interface_edit)
         self.add_field("Channel:", self.channel_spin)
 
+        # Implementation layout
+        self.implementation_layout = QHBoxLayout()
+        self.implementation_label = QLabel("Implementation:")
+        self.implementation_layout.addWidget(self.implementation_label)
+        self.implementation_layout.addWidget(self.implementation_edit)
+        self.implementation_layout.addWidget(self.implementation_button)
+        self.layout.addLayout(self.implementation_layout)
+
         # Remove button
         self.remove_button = QPushButton("Remove PSU")
         self.remove_button.setStyleSheet("background-color: #ffcccc; color: #cc0000; font-weight: bold;")
         self.layout.addWidget(self.remove_button)
+
+        # Initial visibility and connection
+        self.update_implementation_visibility()
+        self.interface_edit.currentTextChanged.connect(self.update_implementation_visibility)
+
+    def upload_implementation(self):
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        filepath, _ = QFileDialog.getOpenFileName(self, "Select Implementation File", repo_root, "Python Files (*.py)")
+        if filepath:
+            try:
+                rel_path = os.path.relpath(filepath, repo_root)
+                self.implementation_edit.setText(rel_path)
+            except ValueError:
+                self.implementation_edit.setText(filepath)
+
+    def update_implementation_visibility(self):
+        is_custom = self.interface_edit.currentText() == "Custom"
+        self.implementation_label.setVisible(is_custom)
+        self.implementation_edit.setVisible(is_custom)
+        self.implementation_button.setVisible(is_custom)
 
     def add_field(self, label_text, widget):
         h_layout = QHBoxLayout()
@@ -73,6 +108,7 @@ class PSUConfigWidget(QGroupBox):
         config.baudrate = self.baudrate_spin.value()
         config.interface = self.interface_edit.currentText()
         config.channel = self.channel_spin.value()
+        config.implementation = self.implementation_edit.text()
         return config
 
 
