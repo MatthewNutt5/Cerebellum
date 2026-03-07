@@ -1,0 +1,29 @@
+{
+    "addressRB": "192.168.0.1",
+    "PSUConfigList": [
+        {
+            "displayName": "LowVoltage",
+            "interface": "SCPI",
+            "protocol": "IP",
+            "IP": "192.168.0.2",
+            "COM": "3",
+            "baudrate": 115200,
+            "implementationPath": "",
+            "implementationName": "",
+            "channel": 2,
+            "implementation": ""
+        },
+        {
+            "displayName": "HighVoltage",
+            "interface": "SCPI",
+            "protocol": "IP",
+            "IP": "192.168.0.3",
+            "COM": "4",
+            "baudrate": 115200,
+            "implementationPath": "",
+            "implementationName": "",
+            "channel": 1,
+            "implementation": ""
+        }
+    ]
+}
