@@ -12,27 +12,33 @@ config = EnvironmentConfig()
 if readJSON:
     config.readJSON("config.json")
 else:
-    config.PSUConfigList.append(PSUConfig())
-    config.PSUConfigList[0].displayName = "Low Voltage Power Supply"
-    config.PSUConfigList[0].interface = "SCPI"
-    # config.PSUConfigList[0].protocol = "IP"
-    # config.PSUConfigList[0].IP = "192.168.0.40"
-    config.PSUConfigList[0].protocol = "Serial"
-    config.PSUConfigList[0].COM = "COM7"
+    psu_config = PSUConfig()
+    psu_config.displayName = "Low Voltage Power Supply"
+    psu_config.interface = "SCPI"
+    # psu_config.protocol = "IP"
+    # psu_config.IP = "192.168.0.40"
+    psu_config.protocol = "Serial"
+    psu_config.COM = "COM7"
+    config.PSUConfigList.append(psu_config)
+
     config.writeJSON("config.json")
 
 settings = TestSettings()
 if readJSON:
     settings.readJSON("settings.json")
 else:
-    settings.PSUSettingsList.append(SetPSUEvent())
-    settings.PSUSettingsList[0].PSUidx = 0
-    settings.PSUSettingsList[0].channel = 0
-    settings.PSUSettingsList[0].voltage = 9.0
-    settings.PSUSettingsList[0].current = 6.0
-    settings.eventList.append(EvalPSUCurrentEvent())
-    settings.eventList[0].PSUidx = 0
-    settings.eventList[0].channel = 0
+    set_event = SetPSUEvent()
+    set_event.PSUidx = 0
+    set_event.channel = 0
+    set_event.voltage = 9.0
+    set_event.current = 6.0
+    settings.PSUSettingsList.append(set_event)
+
+    eval_event = EvalPSUCurrentEvent()
+    eval_event.PSUidx = 0
+    eval_event.channel = 0
+    settings.eventList.append(eval_event)
+
     settings.writeJSON("settings.json")
 
-runTest(config, settings)
+#runTest(config, settings)

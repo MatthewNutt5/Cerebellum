@@ -1,10 +1,5 @@
 Fixes ==========
 
-- Fix JSONs
-    - The current strategy for reading JSONs is causing typing issues; stop
-        copying to __dict__, and actually read the JSON
-    - Add an extra field in the JSON identifying it as an EnvironmentConfig
-        or TestSettings JSON
 - Fix typing
     - Assign types to Config and Settings classes
     - Consider adding return types to functions/methods and ensuring that they
@@ -17,6 +12,9 @@ Key Features ==========
     - Finish createPowerSupply to add this support
     - Pass PSUConfig to the implementation
     - We will include implementations for Anagate CAN and CAEN HV
+- Change PSUConfig into DeviceConfig?
+    - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
+        PowerSupply interface for each
 - Add new Event types
     - Run arbitrary script (Tamalero)
     - DAQ waveform retrieval

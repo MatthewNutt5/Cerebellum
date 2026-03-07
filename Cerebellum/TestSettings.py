@@ -82,13 +82,16 @@ class TestSettings:
     def writeJSON(self, filepath: str):
 
         # Convert all objects to dicts
-        vars_dict = vars(self).copy()
-        vars_dict["PSUSettingsList"] = [vars(psu) for psu in self.PSUSettingsList]
-        vars_dict["eventList"] = [vars(event) for event in self.eventList]
+        json_dict = vars(self).copy()
+        json_dict["PSUSettingsList"] = [vars(event) for event in self.PSUSettingsList]
+        json_dict["eventList"] = [vars(event) for event in self.eventList]
+
+        # Add identifier
+        json_dict["type"] = "TestSettings"
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
-            dump(vars_dict, f, indent=4)
+            dump(json_dict, f, indent=4)
 
     """
     Reads the given filepath for a JSON representation of a configuration;
@@ -98,18 +101,29 @@ class TestSettings:
         
         # Open file and read JSON
         with open(filepath, 'r') as f:
-            self.__dict__ = load(f)
+            json_dict = load(f)
+        
+        # Check for identifier
+        if ("type" not in json_dict):
+            raise KeyError(f"Invalid TestSettings JSON file (no \"type\" field found).")
+        identifier = json_dict["type"]
+        if (identifier != "TestSettings"):
+            raise ValueError(f"Invalid TestSettings JSON file (\"type\" field is {identifier}).")
+        
+        # Assign fields to JSON data
 
         # Convert object dicts to objects
-        for index, psu in enumerate(self.PSUSettingsList):
-            self.PSUSettingsList[index] = SetPSUEvent(vars_dict=psu)
+        self.PSUSettingsList.clear()
+        for event in json_dict["PSUSettingsList"]:
+            self.PSUSettingsList.append(SetPSUEvent(vars_dict=event))
 
-        for index, event in enumerate(self.eventList):
+        self.eventList.clear()
+        for event in json_dict["eventList"]:
             if (event["type"] == "SetPSUEvent"):
-                self.eventList[index] = SetPSUEvent(vars_dict=event)
+                self.eventList.append(SetPSUEvent(vars_dict=event))
             elif (event["type"] == "EvalPSUVoltageEvent"):
-                self.eventList[index] = EvalPSUVoltageEvent(vars_dict=event)
+                self.eventList.append(EvalPSUVoltageEvent(vars_dict=event))
             elif (event["type"] == "EvalPSUCurrentEvent"):
-                self.eventList[index] = EvalPSUCurrentEvent(vars_dict=event)
+                self.eventList.append(EvalPSUCurrentEvent(vars_dict=event))
             elif (event["type"] == "EvalPSUPowerEvent"):
-                self.eventList[index] = EvalPSUPowerEvent(vars_dict=event)
+                self.eventList.append(EvalPSUPowerEvent(vars_dict=event))

@@ -54,12 +54,15 @@ class EnvironmentConfig:
     def writeJSON(self, filepath: str):
 
         # Convert all objects to dicts
-        vars_dict = vars(self).copy()
-        vars_dict["PSUConfigList"] = [vars(config) for config in self.PSUConfigList]
+        json_dict = vars(self).copy()
+        json_dict["PSUConfigList"] = [vars(config) for config in self.PSUConfigList]
+
+        # Add identifier
+        json_dict["type"] = "EnvironmentConfig"
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
-            dump(vars_dict, f, indent=4)
+            dump(json_dict, f, indent=4)
 
     """
     Reads the given filepath for a JSON representation of a configuration;
@@ -69,8 +72,19 @@ class EnvironmentConfig:
         
         # Open file and read JSON
         with open(filepath, 'r') as f:
-            self.__dict__ = load(f)
+            json_dict = load(f)
+
+        # Check for identifier
+        if ("type" not in json_dict):
+            raise KeyError(f"Invalid EnvironmentConfig JSON file (no \"type\" field found).")
+        identifier = json_dict["type"]
+        if (identifier != "EnvironmentConfig"):
+            raise ValueError(f"Invalid EnvironmentConfig JSON file (\"type\" field is {identifier}).")
+        
+        # Assign fields to JSON data
+        self.addressRB = json_dict["addressRB"]
 
         # Convert object dicts to objects
-        for index, config in enumerate(self.PSUConfigList):
-            self.PSUConfigList[index] = PSUConfig(vars_dict=config)
+        self.PSUConfigList.clear()
+        for config in json_dict["PSUConfigList"]:
+            self.PSUConfigList.append(PSUConfig(vars_dict=config))
