@@ -1,0 +1,15 @@
+{
+    "addressRB": "",
+    "PSUConfigList": [
+        {
+            "displayName": "Dummy PSU",
+            "interface": "",
+            "protocol": "",
+            "IP": "",
+            "COM": "",
+            "baudrate": 115200,
+            "implementationPath": "",
+            "implementationName": ""
+        }
+    ]
+}
