@@ -1,10 +1,26 @@
-Fixes ==========
+Fixes/Refactors ==========
 
+- Add more comments and update existing ones
 - Fix typing
     - Assign types to Config and Settings classes
     - Consider adding return types to functions/methods and ensuring that they
         will throw an exception rather than returning None
-- Add more comments and update existing ones
+- Consider an initEventList (instead of strictly SetPSUEvents)?
+    - Or even just a single Eventlist?
+- Refactor things into an Event.py file?
+    - Would hold the Event interface class, and each child class
+    - Could also give each Event type an execute method
+        - For example, an Eval event (e.g. EvalPSUVoltage) would return a bool
+            from its execute method, a Set event would return nothing, and
+            something like a GetDAQWaveformEvent would return waveform data
+- Change PSUConfig into DeviceConfig?
+    - PSUConfig, DAQConfig, etc.
+    - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
+        PowerSupply interface for each
+    - A DeviceConfig would generally specify how to access the device, and
+        the behavior would be modulated by a PowerSupply or DAQ interface
+    - In concert with the above task, could also refactor things into a
+        DeviceConfig.py file
 
 Key Features ==========
 
@@ -12,15 +28,10 @@ Key Features ==========
     - Finish createPowerSupply to add this support
     - Pass PSUConfig to the implementation
     - We will include implementations for Anagate CAN and CAEN HV
-- Change PSUConfig into DeviceConfig?
-    - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
-        PowerSupply interface for each
 - Add new Event types
     - Run arbitrary script (Tamalero)
     - DAQ waveform retrieval
     - Interlock trigger (+ DAQ waveform triggered by falling edge)
-- Consider an initEventList (instead of strictly SetPSUEvents)?
-    - Or even just a single Eventlist?
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
     - Config stored in EnvironmentConfig
     - Handled by _PSU in EnvironmentControl

@@ -24,6 +24,15 @@ from json import dump, load
 
 class PSUConfig:
 
+    displayName         : str
+    interface           : str
+    protocol            : str
+    IP                  : str
+    COM                 : str
+    baudrate            : int
+    implementationPath  : str
+    implementationName  : str
+
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
@@ -41,8 +50,8 @@ class PSUConfig:
 
 class EnvironmentConfig:
 
-    addressRB       : str
-    PSUConfigList   : list[PSUConfig]
+    addressRB           : str
+    PSUConfigList       : list[PSUConfig]
 
     def __init__(self):
         self.addressRB      = ""                # Ethernet IP address of KCU
@@ -51,7 +60,7 @@ class EnvironmentConfig:
     """
     Writes the contents of the object to the given filepath in the JSON format. 
     """
-    def writeJSON(self, filepath: str):
+    def writeJSON(self, filepath: str) -> None:
 
         # Convert all objects to dicts
         json_dict = vars(self).copy()
@@ -68,7 +77,7 @@ class EnvironmentConfig:
     Reads the given filepath for a JSON representation of a configuration;
     populates the fields of the object with the values.
     """
-    def readJSON(self, filepath: str):
+    def readJSON(self, filepath: str) -> None:
         
         # Open file and read JSON
         with open(filepath, 'r') as f:

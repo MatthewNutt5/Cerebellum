@@ -29,12 +29,12 @@ class PowerSupply(ABC):
 
     # Initialize connection, possibly log ID
     @abstractmethod
-    def __init__(self, config: PSUConfig) -> None:
+    def __init__(self, config: PSUConfig):
         pass
 
     # Attempt to close any open connections when deallocated
     @abstractmethod
-    def __del__(self) -> None:
+    def __del__(self):
         pass
     
     # Get any identification data
@@ -142,63 +142,63 @@ class SCPIPowerSupply(PowerSupply):
             logging.info(f"Closed IP socket {self.config.IP}.")
     
     # Get any identification data
-    def getID(self):
+    def getID(self) -> str:
         IDN = self._querySCPI("*IDN?\n")
         VERS = self._querySCPI("SYST:VERS?\n")
         return f"IDN: {IDN}, SCPI Version: {VERS}"
 
     # Set the voltage setting of the given channel
-    def setVoltage(self, voltage: float, channel: int):
+    def setVoltage(self, voltage: float, channel: int) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"VOLT {voltage}\n")
 
     # Set the current setting of the given channel
-    def setCurrent(self, current: float, channel: int):
+    def setCurrent(self, current: float, channel: int) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"CURR {current}\n")
 
     # Get the voltage setting of the given channel
-    def getVoltage(self, channel: int):
+    def getVoltage(self, channel: int) -> float:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return self._parseFloatSCPI(self._querySCPI("VOLT?\n"))
 
     # Get the current setting of the given channel
-    def getCurrent(self, channel: int):
+    def getCurrent(self, channel: int) -> float:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return self._parseFloatSCPI(self._querySCPI("CURR?\n"))
     
     # Measure the voltage at the given channel
-    def measureVoltage(self, channel: int):
+    def measureVoltage(self, channel: int) -> float:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return self._parseFloatSCPI(self._querySCPI("MEAS:VOLT?\n"))
     
     # Measure the current at the given channel
-    def measureCurrent(self, channel: int):
+    def measureCurrent(self, channel: int) -> float:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return self._parseFloatSCPI(self._querySCPI("MEAS:CURR?\n"))
     
     # Measure the power at the given channel
-    def measurePower(self, channel: int):
+    def measurePower(self, channel: int) -> float:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return self._parseFloatSCPI(self._querySCPI("MEAS:POW?\n"))
     
     # Disable the given channel
-    def disableChannel(self, channel: int):
+    def disableChannel(self, channel: int) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"OUTP:STAT 0\n")
     
     # Enable the given channel
-    def enableChannel(self, channel: int):
+    def enableChannel(self, channel: int) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"OUTP:STAT 1\n")
 
     # Return the enable/disable state of the given channel
-    def getChannelState(self, channel: int):
+    def getChannelState(self, channel: int) -> bool:
         self._writeSCPI(f"INST:SEL {channel}\n")
         return bool(self._querySCPI(f"OUTP:STAT?\n"))
     
     # Shutdown all channels
-    def shutdown(self):
+    def shutdown(self) -> None:
         self._writeSCPI(f"OUTP:ALL 0\n")
 
 
@@ -208,7 +208,7 @@ class SCPIPowerSupply(PowerSupply):
     """
 
     # Send an SCPI command without reading a response
-    def _writeSCPI(self, cmd: str):
+    def _writeSCPI(self, cmd: str) -> None:
 
         if (self.config.protocol == "Serial"):
             if not self.ser or not self.ser.is_open:
@@ -227,7 +227,7 @@ class SCPIPowerSupply(PowerSupply):
 
     # Send an SCPI command and return the decoded response
     # Pass to _parseFloatSCPI to extract float
-    def _querySCPI(self, cmd: str):
+    def _querySCPI(self, cmd: str) -> str:
 
         if (self.config.protocol == "Serial"):
             if not self.ser or not self.ser.is_open:
@@ -251,7 +251,7 @@ class SCPIPowerSupply(PowerSupply):
 
     # Extract a float (e.g. voltage) from a decoded SCPI response
     @staticmethod
-    def _parseFloatSCPI(response: str):
+    def _parseFloatSCPI(response: str) -> float:
         match = re.search(r"[-+]?\d*\.?\d+", response)
         if not match:
             raise RuntimeError(f"Unable to locate value in response: {response}")
@@ -259,7 +259,7 @@ class SCPIPowerSupply(PowerSupply):
 
 
 
-def createPowerSupply(config: PSUConfig):
+def createPowerSupply(config: PSUConfig) -> PowerSupply:
     if (config.interface == "SCPI"):
         return SCPIPowerSupply(config)
     elif (config.interface == "Custom"):
