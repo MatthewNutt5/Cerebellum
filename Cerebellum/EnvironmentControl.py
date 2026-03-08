@@ -127,13 +127,13 @@ def _setPSU(event: SetPSUEvent, psu: PowerSupply) -> None:
     logging.info(f"Setting channel {event.channel} of PSU #{event.PSUidx} to {event.voltage} V and {event.current} A.")
 
     # Set voltage and verify that the setting succeeded
-    psu.setVoltage(event.voltage, event.channel)
+    psu.setVoltage(event.channel, event.voltage)
     actualSetVoltage = psu.getVoltage(event.channel)
     if (actualSetVoltage != event.voltage):
         raise RuntimeError(f"Voltage setting of channel {event.channel} of PSU #{event.PSUidx} ({actualSetVoltage} V) does not match expected setting ({event.voltage} V). The desired setting may be out-of-range for this PSU.")
     
     # Set current and verify that the setting succeeded
-    psu.setCurrent(event.current, event.channel)
+    psu.setCurrent(event.channel, event.current)
     actualSetCurrent = psu.getCurrent(event.channel)
     if (actualSetCurrent != event.current):
         raise RuntimeError(f"Current setting of channel {event.channel} of PSU #{event.PSUidx} ({actualSetCurrent} A) does not match expected setting ({event.current} A). The desired setting may be out-of-range for this PSU.")

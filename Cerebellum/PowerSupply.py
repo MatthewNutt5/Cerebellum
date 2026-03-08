@@ -46,12 +46,12 @@ class PowerSupply(ABC):
 
     # Set the voltage setting of the given channel
     @abstractmethod
-    def setVoltage(self, voltage: float, channel: int) -> None:
+    def setVoltage(self, channel: int, voltage: float) -> None:
         pass
 
     # Set the current setting of the given channel
     @abstractmethod
-    def setCurrent(self, current: float, channel: int) -> None:
+    def setCurrent(self, channel: int, current: float) -> None:
         pass
 
     # Get the voltage setting of the given channel
@@ -122,17 +122,17 @@ class SCPIPowerSupply(PowerSupply):
                     port=self.config.COM,
                     baudrate=self.config.baudrate
                 )
-                logging.info(f"Opened serial port ({self.config.COM}).")
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
+                logging.info(f"Opened SCPIPowerSupply at serial port ({self.config.COM}).")
             except serial.SerialException as e:
-                raise RuntimeError(f"Failed to open serial port ({self.config.COM}): {e}")
+                raise RuntimeError(f"Failed to open SCPIPowerSupply at serial port ({self.config.COM}): {e}")
         elif (self.config.protocol == "IP"):
             try:
                 self.socket = socketscpi.SocketInstrument(self.config.IP)
-                logging.info(f"Opened IP socket ({self.config.IP}).")
+                logging.info(f"Opened SCPIPowerSupply at IP socket ({self.config.IP}).")
             except socketscpi.SockInstError as e:
-                raise RuntimeError(f"Failed to open IP socket ({self.config.IP}): {e}")
+                raise RuntimeError(f"Failed to open SCPIPowerSupply at IP socket ({self.config.IP}): {e}")
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
         
@@ -142,10 +142,10 @@ class SCPIPowerSupply(PowerSupply):
     def __del__(self):
         if ("ser" in vars(self)) and self.ser and self.ser.is_open:
             self.ser.close()
-            logging.info(f"Closed serial port {self.config.COM}.")
+            logging.info(f"Closed SCPIPowerSupply at serial port ({self.config.COM}).")
         if ("socket" in vars(self)) and self.socket:
             self.socket.close()
-            logging.info(f"Closed IP socket {self.config.IP}.")
+            logging.info(f"Closed SCPIPowerSupply at IP socket ({self.config.IP}).")
     
     # Get any identification data
     def getID(self) -> str:
@@ -154,12 +154,12 @@ class SCPIPowerSupply(PowerSupply):
         return f"IDN: {IDN}, SCPI Version: {VERS}"
 
     # Set the voltage setting of the given channel
-    def setVoltage(self, voltage: float, channel: int) -> None:
+    def setVoltage(self, channel: int, voltage: float) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"VOLT {voltage}\n")
 
     # Set the current setting of the given channel
-    def setCurrent(self, current: float, channel: int) -> None:
+    def setCurrent(self, channel: int, current: float) -> None:
         self._writeSCPI(f"INST:SEL {channel}\n")
         self._writeSCPI(f"CURR {current}\n")
 
