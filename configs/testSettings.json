@@ -1,0 +1,29 @@
+{
+    "PSUSettingsList": [
+        {
+            "type": "SetPSUEvent",
+            "PSUidx": 0,
+            "channel": 2,
+            "enable": true,
+            "voltage": 1.0,
+            "current": 0.15
+        },
+        {
+            "type": "SetPSUEvent",
+            "PSUidx": 1,
+            "channel": 1,
+            "enable": true,
+            "voltage": 200.0,
+            "current": 1.0
+        }
+    ],
+    "eventList": [
+        {
+            "type": "EvalPSUCurrentEvent",
+            "PSUidx": 0,
+            "channel": 0,
+            "CurrentLow": 0.0,
+            "CurrentHigh": Infinity
+        }
+    ]
+}
