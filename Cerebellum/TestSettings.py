@@ -16,90 +16,89 @@ from json import dump, load
 
 
 class Event:
-
     type            : str
 
 class SetPSUEvent(Event):
 
-    PSUidx          : int
-    channel         : int
-    enable          : bool
-    voltage         : float
-    current         : float
+    PSUidx          : int   # Index of the PSU (correlate with PSUConfigList in EnvironmentConfig)
+    channel         : int   # PSU channel to impart these settings
+    enable          : bool  # Should the power supply be enabled or disabled?
+    voltage         : float # Voltage setting
+    current         : float # Current setting
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.type           = "SetPSUEvent"         # Object type (only used for JSON read/write)
-            self.PSUidx         = 0                     # Index of the PSU (correlate with PSUConfigList in EnvironmentConfig)
-            self.channel        = 0                     # PSU channel to impart these settings
-            self.enable         = True                  # Is this power supply channel enabled for this test?
-            self.voltage        = 0.0                   # Voltage setting
-            self.current        = 0.0                   # Current setting
+            self.type           = "SetPSUEvent"
+            self.PSUidx         = 0
+            self.channel        = 0
+            self.enable         = True
+            self.voltage        = 0.0
+            self.current        = 0.0
 
 class EvalPSUVoltageEvent(Event):
 
-    PSUidx          : int
-    channel         : int
-    VoltageLow      : float
-    VoltageHigh     : float
+    PSUidx          : int   # Index of the PSU
+    channel         : int   # PSU channel to measure
+    VoltageLow      : float # The measured voltage must be >= this voltage
+    VoltageHigh     : float # The measured voltage must be <= this voltage
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.type           = "EvalPSUVoltageEvent" # Object type
-            self.PSUidx         = 0                     # Index of the PSU
-            self.channel        = 0                     # PSU channel to measure
-            self.VoltageLow     = 0.0                   # The measured voltage must be >= this voltage
-            self.VoltageHigh    = float('inf')          # The measured voltage must be <= this voltage
+            self.type           = "EvalPSUVoltageEvent"
+            self.PSUidx         = 0
+            self.channel        = 0
+            self.VoltageLow     = 0.0
+            self.VoltageHigh    = float('inf')
 
 class EvalPSUCurrentEvent(Event):
 
-    PSUidx          : int
-    channel         : int
-    CurrentLow      : float
-    CurrentHigh     : float
+    PSUidx          : int   # Index of the PSU
+    channel         : int   # PSU channel to measure
+    CurrentLow      : float # The measured current must be >= this current
+    CurrentHigh     : float # The measured current must be <= this current
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.type           = "EvalPSUCurrentEvent" # Object type
-            self.PSUidx         = 0                     # Index of the PSU
-            self.channel        = 0                     # PSU channel to measure
-            self.CurrentLow     = 0.0                   # The measured current must be >= this current
-            self.CurrentHigh    = float('inf')          # The measured current must be <= this current
+            self.type           = "EvalPSUCurrentEvent"
+            self.PSUidx         = 0
+            self.channel        = 0
+            self.CurrentLow     = 0.0
+            self.CurrentHigh    = float('inf')
 
 class EvalPSUPowerEvent(Event):
 
-    PSUidx          : int
-    channel         : int
-    PowerLow        : float
-    PowerHigh       : float
+    PSUidx          : int   # Index of the PSU
+    channel         : int   # PSU channel to measure
+    PowerLow        : float # The measured power must be >= this power
+    PowerHigh       : float # The measured power must be <= this power
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.type           = "EvalPSUPowerEvent"   # Object type
-            self.PSUidx         = 0                     # Index of the PSU
-            self.channel        = 0                     # PSU channel to measure
-            self.PowerLow       = 0.0                   # The measured power must be >= this power
-            self.PowerHigh      = float('inf')          # The measured power must be <= this power
+            self.type           = "EvalPSUPowerEvent"
+            self.PSUidx         = 0
+            self.channel        = 0
+            self.PowerLow       = 0.0
+            self.PowerHigh      = float('inf')
 
 
 
 class TestSettings:
 
-    PSUSettingsList : list[SetPSUEvent]
-    eventList       : list[Event]
+    PSUSettingsList : list[SetPSUEvent] # List of SetPSUEvent objects
+    eventList       : list[Event]       # List of Event objects
 
     def __init__(self):
         
-        self.PSUSettingsList    = []    # List of SetPSUEvent objects
-        self.eventList          = []    # List of Event objects
+        self.PSUSettingsList    = []
+        self.eventList          = []
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 

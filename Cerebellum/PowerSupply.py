@@ -23,6 +23,8 @@ SCPI_WRITE_DELAY = 0.1
 
 class PowerSupply(ABC):
 
+    config  : PSUConfig # Configuration of this power supply
+
     """
     Interface Methods ======================================================
     """
@@ -101,6 +103,10 @@ class PowerSupply(ABC):
 
 class SCPIPowerSupply(PowerSupply):
 
+    config  : PSUConfig                     # Configuration of this power supply
+    ser     : serial.Serial                 # Serial object (for COM)
+    socket  : socketscpi.SocketInstrument   # Socket object (for IP)
+
     """
     Interface Methods ======================================================
     """
@@ -114,19 +120,19 @@ class SCPIPowerSupply(PowerSupply):
             try:
                 self.ser = serial.Serial(
                     port=self.config.COM,
-                    baudrate=self.config.baudrate,
-                    timeout=1.0
+                    baudrate=self.config.baudrate
                 )
-                logging.info(f"Opened serial port {self.config.COM}.")
+                logging.info(f"Opened serial port ({self.config.COM}).")
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
             except serial.SerialException as e:
-                raise RuntimeError(f"Failed to open serial port {self.config.COM}: {e}")
+                raise RuntimeError(f"Failed to open serial port ({self.config.COM}): {e}")
         elif (self.config.protocol == "IP"):
             try:
                 self.socket = socketscpi.SocketInstrument(self.config.IP)
+                logging.info(f"Opened IP socket ({self.config.IP}).")
             except socketscpi.SockInstError as e:
-                raise RuntimeError(f"Failed to open IP socket {self.config.IP}: {e}")
+                raise RuntimeError(f"Failed to open IP socket ({self.config.IP}): {e}")
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
         

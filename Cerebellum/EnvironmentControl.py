@@ -193,7 +193,7 @@ class _DelayedInterrupt(object):
     def __init__(self, signals):
         if not isinstance(signals, list) and not isinstance(signals, tuple):
             signals = [signals]
-        self.sigs = signals        
+        self.sigs = signals
 
     def __enter__(self):
         self.signal_received = {}

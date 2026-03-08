@@ -1,19 +1,16 @@
 Fixes/Refactors ==========
 
 - Add more comments and update existing ones
-- Fix typing
-    - Assign types to Config and Settings classes
-    - Consider adding return types to functions/methods and ensuring that they
-        will throw an exception rather than returning None
 - Consider an initEventList (instead of strictly SetPSUEvents)?
-    - Or even just a single Eventlist?
+    - A list of events to execute first, then wait for user input to continue?
+    - Or even just a single eventList?
 - Refactor things into an Event.py file?
     - Would hold the Event interface class, and each child class
     - Could also give each Event type an execute method
         - For example, an Eval event (e.g. EvalPSUVoltage) would return a bool
             from its execute method, a Set event would return nothing, and
             something like a GetDAQWaveformEvent would return waveform data
-- Change PSUConfig into DeviceConfig?
+- DeviceConfig interface?
     - PSUConfig, DAQConfig, etc.
     - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
         PowerSupply interface for each
@@ -28,20 +25,28 @@ Key Features ==========
     - Finish createPowerSupply to add this support
     - Pass PSUConfig to the implementation
     - We will include implementations for Anagate CAN and CAEN HV
+- Add CAEN HV implementation
+- Timing controls
+    - Sleep a certain period of time after each X event? Each event period?
+        Add an event just for waiting? All of the above?
+    - WaitEvent = wait for user input to continue, w/ a custom message
+    - SleepEvent = sleep for x seconds before continuing
 - Add new Event types
     - Run arbitrary script (Tamalero)
     - DAQ waveform retrieval
     - Interlock trigger (+ DAQ waveform triggered by falling edge)
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
-    - Config stored in EnvironmentConfig
-    - Handled by _PSU in EnvironmentControl
-    - Best to measure actual output voltage rather than trust setting
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
     - Could require a certain temperature reading before starting test
+- Add Weiner crate support
 
 QoL Features ==========
 
 - Add log verbosity
 - Add log-to-file
 - Adjust log formatting
+- Persistence of GUI state
+- Some way to add custom interfaces to the GUI, i.e. as an option in the
+    "interface" select, instead of requiring manual entry of interfaceName, etc.
+    - implementationPath, implementationClass, implementationDisplayName

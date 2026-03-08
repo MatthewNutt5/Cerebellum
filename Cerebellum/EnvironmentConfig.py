@@ -6,14 +6,6 @@ etc. Ideally, the environment configuration is determined once and will not
 change between test cycles. Configurations can be stored in JSON files for
 later use. Primarily used by EnvironmentControl.
 
-Definitions
-    - Outgoing Dependency: "This power supply must see a voltage of at least _
-    coming from PSU X before it will activate." For example, the HVPS will
-    always check if the LVPS is operating before it will activate.
-    - Incoming Dependency: "This power supply cannot deactivate until X is
-    deactivated." Likewise, the LVPS must see that the HVPS is disabled before
-    it will turn off.
-
 This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
 """
@@ -24,38 +16,40 @@ from json import dump, load
 
 class PSUConfig:
 
-    displayName         : str
-    interface           : str
-    protocol            : str
-    IP                  : str
-    COM                 : str
-    baudrate            : int
-    implementationPath  : str
-    implementationName  : str
+    displayName         : str               # Display name of the power supply
+    interface           : str               # Communication interface (SCPI / Custom)
+    protocol            : str               # Communication protocol (IP / Serial)
+    IP                  : str               # IP address
+    COM                 : str               # COM port (e.g. /dev/ttyACM0, COM1)
+    baudrate            : int               # COM baudrate
+    implementationPath  : str               # Filepath to implementation for Custom interface
+    implementationClass : str               # Name of implementation class (i.e. constructor to call)
+    customConfig        : dict[str, str]    # Dict of config variables to be used by a custom implementation
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.displayName        = "Power Supply"    # Display name of the power supply
-            self.interface          = ""                # Communication interface (SCPI / Custom)
-            self.protocol           = ""                # Communication protocol (IP / Serial)
-            self.IP                 = ""                # IP address
-            self.COM                = ""                # COM port (e.g. /dev/ttyACM0, COM1)
-            self.baudrate           = 115200            # COM baudrate
-            self.implementationPath = ""                # Filepath to implementation for Custom interface
-            self.implementationName = ""                # Name of implementation class (i.e. constructor to call)
+            self.displayName        = "Power Supply"
+            self.interface          = ""
+            self.protocol           = ""
+            self.IP                 = ""
+            self.COM                = ""
+            self.baudrate           = 115200
+            self.implementationPath = ""
+            self.implementationName = ""
+            self.customConfig       = {}
 
 
 
 class EnvironmentConfig:
 
-    addressRB           : str
-    PSUConfigList       : list[PSUConfig]
+    addressRB           : str               # Ethernet IP address of KCU
+    PSUConfigList       : list[PSUConfig]   # List of PSUConfig objects
 
     def __init__(self):
-        self.addressRB      = ""                # Ethernet IP address of KCU
-        self.PSUConfigList  = []                # List of PSUConfig objects
+        self.addressRB      = ""
+        self.PSUConfigList  = []
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
