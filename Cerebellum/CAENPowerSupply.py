@@ -13,13 +13,12 @@ can be delivered from.
 from Cerebellum.EnvironmentConfig import PSUConfig
 from Cerebellum.PowerSupply import PowerSupply
 
-from pyparsing.helpers import wraps
 from caen_libs import caenhvwrapper
 from caen_libs._caenhvwrappertypes import Board, ParamProp
 import logging
 
 # PSUConfig.customConfig is a dict of string parameters you can pass through
-# from Cerebellum. For this implementation, the following parameters exist:
+# from Cerebellum. For this implementation, the following parameters are used:
 # customConfig["systemType"]
 # customConfig["linkType"]
 # customConfig["username"]

@@ -21,11 +21,6 @@ Fixes/Refactors ==========
 
 Key Features ==========
 
-- Add support for custom implementations of PowerSupply
-    - Finish createPowerSupply to add this support
-    - Pass PSUConfig to the implementation
-    - We will include implementations for Anagate CAN and CAEN HV
-- Add CAEN HV implementation
 - Timing controls
     - Sleep a certain period of time after each X event? Each event period?
         Add an event just for waiting? All of the above?
@@ -39,7 +34,7 @@ Key Features ==========
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
     - Could require a certain temperature reading before starting test
-- Add Weiner crate support
+- Add Weiner crate support (AnaGate CAN)
 
 QoL Features ==========
 
@@ -50,3 +45,27 @@ QoL Features ==========
 - Some way to add custom interfaces to the GUI, i.e. as an option in the
     "interface" select, instead of requiring manual entry of interfaceName, etc.
     - implementationPath, implementationClass, implementationDisplayName
+- preferences.json
+    - Holds preferences like verbosity level
+    - Would this be a good place to store peristence of GUI state? Or would that
+        be called something more general like data.json?
+- implementations.json
+    - Front-end
+        - On startup, GUI reads implementations specified by the JSON, and provides
+            a dropdown menu of these implementations
+        - Each implementation spec starts with the name, e.g. CAENPowerSupply
+            - This name will be used as the import name and display name
+            - If an implementation for power supply, handled in a PowerSupply folder
+        - Each spec also includes the options available and their type
+            - E.g. IP is a string, baudrate is an int, etc.
+            - Would be cool but even more complicated to specify dropdown options
+        - So the base case of each power supply is displayName and implementation,
+            then the implementation decides the config options available
+    - Back-end
+        - Then PSUConfig would need to be refactored; each implementation should
+            include its own config, e.g. CAENPowerSupply has CAENConfig
+            - These configs extend some PSUConfig interface, and EnvironmentConfig
+                stores a list of these generalized PSUConfigs
+        - Then the PowerSupply constructor calls the right implementation
+            constructor depending on its config type
+            - The constructor is given by the implementations.json

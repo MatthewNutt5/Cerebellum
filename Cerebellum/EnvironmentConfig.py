@@ -16,36 +16,34 @@ from json import dump, load
 
 class PSUConfig:
 
-    displayName         : str               # Display name of the power supply
-    interface           : str               # Communication interface (SCPI / Custom)
-    protocol            : str               # Communication protocol (IP / Serial)
-    IP                  : str               # IP address
-    COM                 : str               # COM port (e.g. /dev/ttyACM0, COM1)
-    baudrate            : int               # COM baudrate
-    implementationPath  : str               # Filepath to implementation for Custom interface
-    implementationClass : str               # Name of implementation class (i.e. constructor to call)
-    customConfig        : dict[str, str]    # Dict of config variables to be used by a custom implementation
+    displayName     : str               # Display name of the power supply
+    interface       : str               # Communication interface (SCPI / Custom)
+    protocol        : str               # Communication protocol (IP / Serial)
+    IP              : str               # IP address
+    COM             : str               # COM port (e.g. /dev/ttyACM0, COM1)
+    baudrate        : int               # COM baudrate
+    implementation  : str               # Name of implementation (e.g. CAENPowerSupply)
+    customConfig    : dict[str, str]    # Dict of config variables to be used by a custom implementation
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             self.__dict__ = vars_dict.copy()
         else:
-            self.displayName        = "Power Supply"
-            self.interface          = ""
-            self.protocol           = ""
-            self.IP                 = ""
-            self.COM                = ""
-            self.baudrate           = 115200
-            self.implementationPath = ""
-            self.implementationName = ""
-            self.customConfig       = {}
+            self.displayName    = "Power Supply"
+            self.interface      = ""
+            self.protocol       = ""
+            self.IP             = ""
+            self.COM            = ""
+            self.baudrate       = 115200
+            self.implementation = ""
+            self.customConfig   = {}
 
 
 
 class EnvironmentConfig:
 
-    addressRB           : str               # Ethernet IP address of KCU
-    PSUConfigList       : list[PSUConfig]   # List of PSUConfig objects
+    addressRB       : str               # Ethernet IP address of KCU
+    PSUConfigList   : list[PSUConfig]   # List of PSUConfig objects
 
     def __init__(self):
         self.addressRB      = ""

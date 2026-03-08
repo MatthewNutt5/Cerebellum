@@ -14,6 +14,7 @@ interface will be constructed as an SCPIPowerSupply.
 
 from Cerebellum.EnvironmentConfig import PSUConfig
 from abc import ABC, abstractmethod
+import importlib
 
 import serial, socketscpi, time, re, logging
 
@@ -269,7 +270,9 @@ def createPowerSupply(config: PSUConfig) -> PowerSupply:
     if (config.interface == "SCPI"):
         return SCPIPowerSupply(config)
     elif (config.interface == "Custom"):
-        # Add code here to call a custom constructor, given by config.filepath
-        raise NotImplementedError("Custom power supply interfaces have not been implemented yet.")
+        # Assumed that the module and class have the same name
+        module = importlib.import_module(config.implementation)
+        constructor = getattr(module, config.implementation)
+        return constructor(config)
     else:
         raise ValueError(f"Invalid interface value: {config.interface}")
