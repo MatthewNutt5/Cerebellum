@@ -75,15 +75,9 @@ class CAENPowerSupply(PowerSupply):
 
     # Attempt to close any open connections when deallocated
     def __del__(self):
-        try:
-            # An error, critical or not, may occur during close().
-            # Errors in __del__ won't interfere with normal operation, so they
-            # don't necessarily need to be handled.
+        if ("device" in vars(self)) and self.device:
             self.device.close()
             logging.info(f"Closed CAENPowerSupply at socket ({self.config.IP}).")
-        finally:
-            # Always clear the reference so Device.__del__ won't attempt to close again
-            self.device = None
     
     # Get any identification data
     def getID(self) -> str:
