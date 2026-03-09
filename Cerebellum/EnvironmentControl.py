@@ -67,19 +67,23 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
         pass
     finally:
         with _DelayedInterrupt([signal.SIGINT, signal.SIGTERM]):
-            # Turn off all PSUs
             print()
             logging.info("")
-            logging.info("Disabling PSUs ==========")
-            for idx, psu in enumerate(PSUList):
-                try:
-                    if psu:
-                        logging.info(f"Disabling PSU #{idx} -----")
-                        psu.shutdown()
-                except Exception as e:
-                    logging.warning(f"While attemping to disable PSU #{idx}, an exception was encountered: {e}")
-                    pass
-            logging.info("")
+
+            # If PSUList has been initialized (i.e. all PSUs were initialized), shutdown all of them
+            if "PSUList" not in locals():
+                logging.info("PSUList has not been initialized. Skipping shutdown.")
+            else:
+                logging.info("Disabling PSUs ==========")
+                for idx, psu in enumerate(PSUList):
+                    try:
+                        if psu:
+                            logging.info(f"Disabling PSU #{idx} -----")
+                            psu.shutdown()
+                    except Exception as e:
+                        logging.warning(f"While attemping to disable PSU #{idx}, an exception was encountered: {e}")
+                        pass
+                logging.info("")
 
 def _initPSUList(PSUConfigList: list[PSUConfig]) -> list[PowerSupply]:
     PSUList = []
