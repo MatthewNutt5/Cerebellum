@@ -26,7 +26,7 @@ else:
         configHV = PSUConfig()
         configHV.displayName = "High Voltage Power Supply"
         configHV.interface = "Custom"
-        configHV.IP = "192.168.0.40"
+        configHV.IP = "192.168.0.1"
         configHV.customConfig = {"systemType" : "SY4527", "linkType" : "TCPIP", "username" : "", "password" : "", "boardSlot" : "0"}
         config.PSUConfigList.append(configHV)
 
