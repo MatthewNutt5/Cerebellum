@@ -1,6 +1,7 @@
-import sys
-sys.path.append('../')
-sys.path.append('../Cerebellum/')
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
 
 from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
 from Cerebellum.TestSettings import TestSettings, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent

@@ -1,13 +1,16 @@
-import sys
-import os
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
+
+from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
+
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel, QLineEdit, QPushButton,
                                QScrollArea, QFileDialog, QMessageBox, QGroupBox, QSpinBox, QComboBox)
 from PySide6.QtCore import Qt
 
-# Ensure the current directory is in the path to import EnvironmentConfig
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from EnvironmentConfig import EnvironmentConfig, PSUConfig
+
 
 class PSUConfigWidget(QGroupBox):
     def __init__(self, psu_config=None, parent=None):

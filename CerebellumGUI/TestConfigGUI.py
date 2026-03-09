@@ -1,14 +1,16 @@
-import sys
-import os
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
+
+from Cerebellum.EnvironmentConfig import EnvironmentConfig
+from Cerebellum.TestSettings import TestSettings, Event, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel, QLineEdit, QPushButton,
                                QScrollArea, QFileDialog, QMessageBox, QGroupBox, QSpinBox, QComboBox, QDoubleSpinBox, QFrame)
 from PySide6.QtCore import Qt
 
-# Ensure the current directory is in the path to import configs
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from EnvironmentConfig import EnvironmentConfig
-from TestSettings import TestSettings, Event, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
 
 
 class SetPSUEventWidget(QGroupBox):

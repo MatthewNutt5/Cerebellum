@@ -8,6 +8,11 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
 from Cerebellum.TestSettings import TestSettings, Event
 from Cerebellum.TestSettings import SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent

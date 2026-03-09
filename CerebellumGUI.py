@@ -1,11 +1,13 @@
-import sys
-import os
+# Always make sure that CerebellumGUI and its submodules are on the import path
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/CerebellumGUI/")
+
+from CerebellumGUI.EnvironmentConfigGUI import EnvironmentConfigGUI
+from CerebellumGUI.TestConfigGUI import TestConfigGUI
+
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel
 
-# Ensure the current directory is in the path to import configs
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from EnvironmentConfigGUI import EnvironmentConfigGUI
-from TestConfigGUI import TestConfigGUI
 
 
 class MainGUI(QMainWindow):

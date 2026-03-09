@@ -10,6 +10,11 @@ PSUs. Each "slot" houses a "board", which has its own "channels" that power
 can be delivered from.
 """
 
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from Cerebellum.EnvironmentConfig import PSUConfig
 from Cerebellum.PowerSupply import PowerSupply
 
