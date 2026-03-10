@@ -14,8 +14,8 @@ sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
-from Cerebellum.TestSettings import TestSettings, Event
-from Cerebellum.TestSettings import SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+from Cerebellum.TestSettings import TestSettings
+from Cerebellum.Event import *
 from Cerebellum.PowerSupply import PowerSupply, createPowerSupply
 
 import logging, signal
@@ -105,91 +105,18 @@ def _setPSUList(PSUSettingsList: list[SetPSUEvent], PSUList: list[PowerSupply]) 
 def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]) -> None:
     for idx, event in enumerate(eventList):
         logging.info(f"Executing event #{idx} -----")
-        if isinstance(event, SetPSUEvent):
-            _setPSU(event, PSUList[event.PSUidx])
-        elif isinstance(event, EvalPSUVoltageEvent):
-            if (_evalPSUVoltage(event, PSUList[event.PSUidx])):
-                logging.info("PASS")
+        if isinstance(event, NoneEvent): # Events that return None
+            if isinstance(event, NonePSUEvent):
+                event.exec(PSUList[event.PSUidx])
             else:
-                logging.info("FAIL")
-        elif isinstance(event, EvalPSUCurrentEvent):
-            if (_evalPSUCurrent(event, PSUList[event.PSUidx])):
-                logging.info("PASS")
+                event.exec()
+        elif isinstance(event, BoolEvent): # Events that return bool
+            if isinstance(event, BoolPSUEvent):
+                logging.info("PASS" if event.exec(PSUList[event.PSUidx]) else "FAIL")
             else:
-                logging.info("FAIL")
-        elif isinstance(event, EvalPSUPowerEvent):
-            if (_evalPSUPower(event, PSUList[event.PSUidx])):
-                logging.info("PASS")
-            else:
-                logging.info("FAIL")
+                logging.info("PASS" if event.exec() else "FAIL")
         else:
             raise ValueError(f"Invalid Event type: {type(event)}")
-
-
-
-"""
-Event Handlers =================================================================
-"""
-
-def _setPSU(event: SetPSUEvent, psu: PowerSupply) -> None:
-    logging.info("SetPSUEvent:")
-    logging.info(f"Setting channel {event.channel} of PSU #{event.PSUidx} to {event.voltage} V and {event.current} A.")
-
-    # Set voltage and verify that the setting succeeded
-    psu.setVoltage(event.channel, event.voltage)
-    actualSetVoltage = psu.getVoltage(event.channel)
-    if (actualSetVoltage != event.voltage):
-        raise RuntimeError(f"Voltage setting of channel {event.channel} of PSU #{event.PSUidx} ({actualSetVoltage} V) does not match expected setting ({event.voltage} V). The desired setting may be out-of-range for this PSU.")
-    
-    # Set current and verify that the setting succeeded
-    psu.setCurrent(event.channel, event.current)
-    actualSetCurrent = psu.getCurrent(event.channel)
-    if (actualSetCurrent != event.current):
-        raise RuntimeError(f"Current setting of channel {event.channel} of PSU #{event.PSUidx} ({actualSetCurrent} A) does not match expected setting ({event.current} A). The desired setting may be out-of-range for this PSU.")
-    
-    # Enable/disable the power supply
-    if event.enable:
-        logging.info(f"Enabling channel {event.channel} of PSU #{event.PSUidx}.")
-        psu.enableChannel(event.channel)
-    else:
-        logging.info(f"Disabling channel {event.channel} of PSU #{event.PSUidx}.")
-        psu.disableChannel(event.channel)
-
-def _evalPSUVoltage(event: EvalPSUVoltageEvent, psu: PowerSupply) -> bool:
-    logging.info("EvalPSUVoltageEvent:")
-    logging.info(f"Measured voltage of PSU #{event.PSUidx} must be >= {event.VoltageLow} V and <= {event.VoltageHigh} V.")
-
-    # Measure the voltage and compare against the valid range
-    measured = psu.measureVoltage(event.channel)
-    logging.info(f"Measured voltage of PSU #{event.PSUidx}: {measured} V")
-    if (measured >= event.VoltageLow) and (measured <= event.VoltageHigh):
-        return True
-    else:
-        return False
-
-def _evalPSUCurrent(event: EvalPSUCurrentEvent, psu: PowerSupply) -> bool:
-    logging.info("EvalPSUCurrentEvent:")
-    logging.info(f"Measured current of PSU #{event.PSUidx} must be >= {event.CurrentLow} A and <= {event.CurrentHigh} A.")
-
-    # Measure the current and compare against the valid range
-    measured = psu.measureCurrent(event.channel)
-    logging.info(f"Measured current of PSU #{event.PSUidx}: {measured} A")
-    if (measured >= event.CurrentLow) and (measured <= event.CurrentHigh):
-        return True
-    else:
-        return False
-    
-def _evalPSUPower(event: EvalPSUPowerEvent, psu: PowerSupply) -> bool:
-    logging.info("EvalPSUPowerEvent:")
-    logging.info(f"Measured power of PSU #{event.PSUidx} must be >= {event.PowerLow} W and <= {event.PowerHigh} W.")
-
-    # Measure the power and compare against the valid range
-    measured = psu.measurePower(event.channel)
-    logging.info(f"Measured power of PSU #{event.PSUidx}: {measured} W")
-    if (measured >= event.PowerLow) and (measured <= event.PowerHigh):
-        return True
-    else:
-        return False
 
 
 

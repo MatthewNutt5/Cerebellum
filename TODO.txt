@@ -4,12 +4,6 @@ Fixes/Refactors ==========
 - Consider an initEventList (instead of strictly SetPSUEvents)?
     - A list of events to execute first, then wait for user input to continue?
     - Or even just a single eventList?
-- Refactor things into an Event.py file?
-    - Would hold the Event interface class, and each child class
-    - Could also give each Event type an execute method
-        - For example, an Eval event (e.g. EvalPSUVoltage) would return a bool
-            from its execute method, a Set event would return nothing, and
-            something like a GetDAQWaveformEvent would return waveform data
 - DeviceConfig interface?
     - PSUConfig, DAQConfig, etc.
     - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
@@ -18,6 +12,7 @@ Fixes/Refactors ==========
         the behavior would be modulated by a PowerSupply or DAQ interface
     - In concert with the above task, could also refactor things into a
         DeviceConfig.py file
+- Move some imports into __init__.py to help simplify?
 
 Key Features ==========
 

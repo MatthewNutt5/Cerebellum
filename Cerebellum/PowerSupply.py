@@ -23,6 +23,7 @@ from abc import ABC, abstractmethod
 import importlib
 
 import serial, socketscpi, time, re, logging
+logging.basicConfig(level=logging.INFO)
 
 SCPI_WRITE_DELAY = 0.1
 

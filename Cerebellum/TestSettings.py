@@ -11,82 +11,14 @@ class, which is a helper class used to specify an individual criterion the test
 should evaluate.
 """
 
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from Cerebellum.Event import *
+
 from json import dump, load
-
-
-
-class Event:
-    type            : str
-
-class SetPSUEvent(Event):
-
-    PSUidx          : int   # Index of the PSU (correlate with PSUConfigList in EnvironmentConfig)
-    channel         : int   # PSU channel to impart these settings
-    enable          : bool  # Should the power supply be enabled or disabled?
-    voltage         : float # Voltage setting
-    current         : float # Current setting
-
-    def __init__(self, vars_dict: dict = {}):
-        if vars_dict:
-            self.__dict__ = vars_dict.copy()
-        else:
-            self.type           = "SetPSUEvent"
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.enable         = True
-            self.voltage        = 0.0
-            self.current        = 0.0
-
-class EvalPSUVoltageEvent(Event):
-
-    PSUidx          : int   # Index of the PSU
-    channel         : int   # PSU channel to measure
-    VoltageLow      : float # The measured voltage must be >= this voltage
-    VoltageHigh     : float # The measured voltage must be <= this voltage
-
-    def __init__(self, vars_dict: dict = {}):
-        if vars_dict:
-            self.__dict__ = vars_dict.copy()
-        else:
-            self.type           = "EvalPSUVoltageEvent"
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.VoltageLow     = 0.0
-            self.VoltageHigh    = float('inf')
-
-class EvalPSUCurrentEvent(Event):
-
-    PSUidx          : int   # Index of the PSU
-    channel         : int   # PSU channel to measure
-    CurrentLow      : float # The measured current must be >= this current
-    CurrentHigh     : float # The measured current must be <= this current
-
-    def __init__(self, vars_dict: dict = {}):
-        if vars_dict:
-            self.__dict__ = vars_dict.copy()
-        else:
-            self.type           = "EvalPSUCurrentEvent"
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.CurrentLow     = 0.0
-            self.CurrentHigh    = float('inf')
-
-class EvalPSUPowerEvent(Event):
-
-    PSUidx          : int   # Index of the PSU
-    channel         : int   # PSU channel to measure
-    PowerLow        : float # The measured power must be >= this power
-    PowerHigh       : float # The measured power must be <= this power
-
-    def __init__(self, vars_dict: dict = {}):
-        if vars_dict:
-            self.__dict__ = vars_dict.copy()
-        else:
-            self.type           = "EvalPSUPowerEvent"
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.PowerLow       = 0.0
-            self.PowerHigh      = float('inf')
 
 
 

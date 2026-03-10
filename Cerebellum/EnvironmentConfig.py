@@ -27,7 +27,7 @@ class PSUConfig:
 
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
-            self.__dict__ = vars_dict.copy()
+            vars(self).update(vars_dict) # Install input into __dict__
         else:
             self.displayName    = "Power Supply"
             self.interface      = ""
