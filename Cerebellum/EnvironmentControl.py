@@ -39,18 +39,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
         # Report and wait for user input
         logging.info("")
         logging.info("All PSUs initialized successfully.")
-        logging.info("Verify the credentials appear as expected before continuing. (Next step: Set and enable PSUs)")
-        input("Press Enter to continue...")
-        logging.info("")
-
-        # Set all PSUs to their assigned settings
-        logging.info("Setting and enabling PSUs ==========")
-        _setPSUList(settings.PSUSettingsList, PSUList)
-        
-        # Report and wait for user input
-        logging.info("")
-        logging.info("All PSUs set successfully.")
-        logging.info("Verify the settings appear as expected before continuing. (Next step: Execute events)")
+        logging.info("Verify the credentials appear as expected before continuing to event execution.")
         input("Press Enter to continue...")
         logging.info("")
 
@@ -60,18 +49,20 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
 
         # Report and wait for user input
         logging.info("")
-        logging.info("All criteria checked successfully. (Next step: Disable PSUs)")
-        input("Press Enter to continue...")
+        logging.info("All events exeucted successfully.")
     
     # If there are any errors in normal operation, skip to disabling the PSUs
     # Block all external interrupts while doing so, and keep disabling the other
     # PSUs even if one of them fails
     except Exception as e:
-        logging.error(f"During the test sequence, an exception was encountered: {e}")
-        logging.error(f"Aborting test sequence.")
+        
+        logging.error(f"During the testing routine, an exception was encountered: {e}")
+        logging.error(f"Aborting testing routine.")
         pass
+
     finally:
         with _DelayedInterrupt([signal.SIGINT, signal.SIGTERM]):
+
             print()
             logging.info("")
 
@@ -93,28 +84,29 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
 def _initPSUList(PSUConfigList: list[PSUConfig]) -> list[PowerSupply]:
     PSUList = []
     for idx, psu in enumerate(PSUConfigList):
-        logging.info(f"Initializing PSU #{idx} ({psu.displayName})")
+        logging.info(f"Initializing PSU #{idx} ({psu.displayName}) -----")
         PSUList.append(createPowerSupply(psu))
-    return PSUList
 
-def _setPSUList(PSUSettingsList: list[SetPSUEvent], PSUList: list[PowerSupply]) -> None:
-    for idx, event in enumerate(PSUSettingsList):
-        logging.info(f"Executing PSU setting #{idx} -----")
-        _setPSU(event, PSUList[event.PSUidx])
+    return PSUList
 
 def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]) -> None:
     for idx, event in enumerate(eventList):
+
         logging.info(f"Executing event #{idx} -----")
-        if isinstance(event, NoneEvent): # Events that return None
-            if isinstance(event, NonePSUEvent):
+        logging.info(f"{event.type}: {event.comment}")
+
+        if isinstance(event, NoneEvent): # Events that return None...
+            if isinstance(event, NonePSUEvent): # ...and use a PSU
                 event.exec(PSUList[event.PSUidx])
             else:
                 event.exec()
-        elif isinstance(event, BoolEvent): # Events that return bool
-            if isinstance(event, BoolPSUEvent):
+
+        elif isinstance(event, BoolEvent): # Events that return bool...
+            if isinstance(event, BoolPSUEvent): # ...and use a PSU
                 logging.info("PASS" if event.exec(PSUList[event.PSUidx]) else "FAIL")
             else:
                 logging.info("PASS" if event.exec() else "FAIL")
+
         else:
             raise ValueError(f"Invalid Event type: {type(event)}")
 

@@ -17,20 +17,21 @@ sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from Cerebellum.Event import *
+EventModuleObject = sys.modules["Cerebellum.Event"]
 
 from json import dump, load
+import logging
+logging.basicConfig(level=logging.INFO)
 
 
 
 class TestSettings:
 
-    PSUSettingsList : list[SetPSUEvent] # List of SetPSUEvent objects
-    eventList       : list[Event]       # List of Event objects
+    eventList: list[Event]   # List of Event objects
 
     def __init__(self):
         
-        self.PSUSettingsList    = []
-        self.eventList          = []
+        self.eventList = []
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -39,7 +40,6 @@ class TestSettings:
 
         # Convert all objects to dicts
         json_dict = vars(self).copy()
-        json_dict["PSUSettingsList"] = [vars(event) for event in self.PSUSettingsList]
         json_dict["eventList"] = [vars(event) for event in self.eventList]
 
         # Add identifier
@@ -61,25 +61,22 @@ class TestSettings:
         
         # Check for identifier
         if ("type" not in json_dict):
-            raise KeyError(f"Invalid TestSettings JSON file (no \"type\" field found).")
+            raise KeyError(f"Invalid TestSettings JSON file (no type field found).")
         identifier = json_dict["type"]
         if (identifier != "TestSettings"):
-            raise ValueError(f"Invalid TestSettings JSON file (\"type\" field is {identifier}).")
+            raise ValueError(f"Invalid TestSettings JSON file (type field is {identifier}, not TestSettings).")
         
         # Assign fields to JSON data
-
         # Convert object dicts to objects
-        self.PSUSettingsList.clear()
-        for event in json_dict["PSUSettingsList"]:
-            self.PSUSettingsList.append(SetPSUEvent(vars_dict=event))
-
         self.eventList.clear()
         for event in json_dict["eventList"]:
-            if (event["type"] == "SetPSUEvent"):
-                self.eventList.append(SetPSUEvent(vars_dict=event))
-            elif (event["type"] == "EvalPSUVoltageEvent"):
-                self.eventList.append(EvalPSUVoltageEvent(vars_dict=event))
-            elif (event["type"] == "EvalPSUCurrentEvent"):
-                self.eventList.append(EvalPSUCurrentEvent(vars_dict=event))
-            elif (event["type"] == "EvalPSUPowerEvent"):
-                self.eventList.append(EvalPSUPowerEvent(vars_dict=event))
+            if ("type" not in event):
+                logging.warning(f"Event type field not found during JSON read. Skipping event...")
+                continue
+            eventType = event["type"]
+            constructor = getattr(EventModuleObject, eventType, None)
+            if constructor:
+                self.eventList.append(constructor(vars_dict=event))
+            else:
+                logging.warning(f"Invalid Event type found during JSON read ({eventType}). Skipping event...")
+                continue

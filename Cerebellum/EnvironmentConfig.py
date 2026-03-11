@@ -77,10 +77,10 @@ class EnvironmentConfig:
 
         # Check for identifier
         if ("type" not in json_dict):
-            raise KeyError(f"Invalid EnvironmentConfig JSON file (no \"type\" field found).")
+            raise KeyError(f"Invalid EnvironmentConfig JSON file (no type field found).")
         identifier = json_dict["type"]
         if (identifier != "EnvironmentConfig"):
-            raise ValueError(f"Invalid EnvironmentConfig JSON file (\"type\" field is {identifier}).")
+            raise ValueError(f"Invalid EnvironmentConfig JSON file (type field is {identifier}, not EnvironmentConfig).")
         
         # Assign fields to JSON data
         self.addressRB = json_dict["addressRB"]

@@ -1,9 +1,6 @@
 Fixes/Refactors ==========
 
 - Add more comments and update existing ones
-- Consider an initEventList (instead of strictly SetPSUEvents)?
-    - A list of events to execute first, then wait for user input to continue?
-    - Or even just a single eventList?
 - DeviceConfig interface?
     - PSUConfig, DAQConfig, etc.
     - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
@@ -13,14 +10,10 @@ Fixes/Refactors ==========
     - In concert with the above task, could also refactor things into a
         DeviceConfig.py file
 - Move some imports into __init__.py to help simplify?
+- Consider switching from camelCase to snake_case for variables and functions
 
 Key Features ==========
 
-- Timing controls
-    - Sleep a certain period of time after each X event? Each event period?
-        Add an event just for waiting? All of the above?
-    - WaitEvent = wait for user input to continue, w/ a custom message
-    - SleepEvent = sleep for x seconds before continuing
 - Add new Event types
     - Run arbitrary script (Tamalero)
     - DAQ waveform retrieval
@@ -64,3 +57,7 @@ QoL Features ==========
         - Then the PowerSupply constructor calls the right implementation
             constructor depending on its config type
             - The constructor is given by the implementations.json
+- Build everything into a single .exe we can "release"?
+    - Rename CerebellumGUI.py back to MainGUI.py and move it into the
+        CerebellumGUI module, then use pyinstaller to compile everything
+        starting from MainGUI.py
