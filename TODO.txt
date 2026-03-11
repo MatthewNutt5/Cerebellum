@@ -1,5 +1,10 @@
 Fixes/Refactors ==========
 
+- Ordered shutdown of PSUList
+    - In TestSettings, include a list of PSU indices that specifies the order
+- Avoid PSU enabling/disabling if already enabled/disabled
+- Add option to keep voltage/current setting? e.g. if someone wants to disable
+    without changing settings, and doesn't want to rewrite the setting each time
 - Add more comments and update existing ones
 - DeviceConfig interface?
     - PSUConfig, DAQConfig, etc.
@@ -15,7 +20,6 @@ Fixes/Refactors ==========
 Key Features ==========
 
 - Add new Event types
-    - Run arbitrary script (Tamalero)
     - DAQ waveform retrieval
     - Interlock trigger (+ DAQ waveform triggered by falling edge)
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)

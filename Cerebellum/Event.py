@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Cerebellum.PowerSupply import PowerSupply
 
 from abc import ABC, abstractmethod
-import time, logging
+import logging, time, subprocess
 logging.basicConfig(level=logging.INFO)
 
 
@@ -90,6 +90,7 @@ class SleepEvent(NoneEvent):
 
     # Execute the event
     def exec(self) -> None:
+        logging.info(f"Sleeping for {self.seconds}...")
         time.sleep(self.seconds)
 
 """
@@ -108,6 +109,31 @@ class WaitEvent(NoneEvent):
     # Execute the event
     def exec(self) -> None:
         input("Press Enter to continue...")
+
+"""
+CommandEvent ===================================================================
+"""
+class CommandEvent(NoneEvent):
+
+    command     : str     # Command to run as a subprocess
+
+    # Either init with default values or init with input fields (read from JSON)
+    def __init__(self, vars_dict: dict = {}):
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            self.type           = "CommandEvent"
+            self.comment        = ""
+            self.command        = ""
+
+    # Execute the event
+    def exec(self) -> None:
+        logging.info(f"Executing command: {self.command}")
+        try:
+            subprocess.run(self.command)
+        except Exception as e:
+            logging.warning(f"During command execution, an exception was encountered: {e}")
+            pass
 
 """
 SetPSUEvent ====================================================================
@@ -137,7 +163,7 @@ class SetPSUEvent(NonePSUEvent):
 
         # If disabling, disable BEFORE changing settings
         if not self.enable:
-            logging.info(f"Disabling channel {self.channel} of PSU #{self.PSUidx}.")
+            logging.info(f"Disabling channel {self.channel} of PSU #{self.PSUidx} ({psu.config.displayName}).")
             psu.disableChannel(self.channel)
 
         # Set voltage and verify that the setting succeeded
@@ -154,7 +180,7 @@ class SetPSUEvent(NonePSUEvent):
         
         # If enabling, enable AFTER changing settings
         if self.enable:
-            logging.info(f"Enabling channel {self.channel} of PSU #{self.PSUidx}.")
+            logging.info(f"Enabling channel {self.channel} of PSU #{self.PSUidx} ({psu.config.displayName}).")
             psu.enableChannel(self.channel)
 
 """

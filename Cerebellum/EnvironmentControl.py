@@ -54,6 +54,8 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
     # If there are any errors in normal operation, skip to disabling the PSUs
     # Block all external interrupts while doing so, and keep disabling the other
     # PSUs even if one of them fails
+    # A standard Exception will end runTest prematurely
+    # A BaseException (e.g. KeyboardInterrupt) will end the entire program
     except Exception as e:
         
         logging.error(f"During the testing routine, an exception was encountered: {e}")
