@@ -73,14 +73,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
                 logging.info("PSUList has not been initialized. Skipping shutdown.")
             else:
                 logging.info("Disabling PSUs ==========")
-                for idx, psu in enumerate(PSUList):
-                    try:
-                        if psu:
-                            logging.info(f"Disabling PSU #{idx} -----")
-                            psu.shutdown()
-                    except Exception as e:
-                        logging.warning(f"While attemping to disable PSU #{idx}, an exception was encountered: {e}")
-                        pass
+                _shutdown(settings.shutdownOrder, PSUList)
                 logging.info("")
 
 def _initPSUList(PSUConfigList: list[PSUConfig]) -> list[PowerSupply]:
@@ -111,6 +104,36 @@ def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]) -> None:
 
         else:
             raise ValueError(f"Invalid Event type: {type(event)}")
+
+def _shutdown(shutdownOrder: list[int], PSUList: list[PowerSupply]):
+
+    if not shutdownOrder:
+        logging.info(f"Empty shutdownOrder, defaulting to ascending order.")
+        orderedPSUList = PSUList
+        indexList = [i for i, _ in enumerate(PSUList)]
+
+    elif ( set(shutdownOrder) != set(range(len(PSUList))) ): # If the shutdownOrder does not include each PSU index
+        logging.warning(f"Invalid shutdownOrder (does not include every PSU index), defaulting to ascending order.")
+        orderedPSUList = PSUList
+        indexList = [i for i, _ in enumerate(PSUList)]
+
+    elif ( len(shutdownOrder) != len(set(shutdownOrder)) ): # If the shutdownOrder has duplicate indices
+        logging.warning(f"Invalid shutdownOrder (duplicate indices), defaulting to ascending order.")
+        orderedPSUList = PSUList
+        indexList = [i for i, _ in enumerate(PSUList)]
+
+    else:
+        orderedPSUList = [PSUList[i] for i in shutdownOrder]
+        indexList = shutdownOrder
+
+    for idx, psu in zip(indexList, orderedPSUList):
+        try:
+            if psu:
+                logging.info(f"Disabling PSU #{idx} -----")
+                psu.shutdown()
+        except Exception as e:
+            logging.warning(f"While attemping to disable PSU #{idx}, an exception was encountered: {e}")
+            pass
 
 
 

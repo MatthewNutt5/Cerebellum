@@ -27,11 +27,13 @@ logging.basicConfig(level=logging.INFO)
 
 class TestSettings:
 
-    eventList: list[Event]   # List of Event objects
+    shutdownOrder   : list[int]     # List of PowerSupply indices specifying the shutdown order
+    eventList       : list[Event]   # List of Event objects
 
     def __init__(self):
         
-        self.eventList = []
+        self.shutdownOrder  = []
+        self.eventList      = []
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 

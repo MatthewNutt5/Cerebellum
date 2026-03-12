@@ -12,7 +12,12 @@ Fixes/Refactors ==========
     - In concert with the above task, could also refactor things into a
         DeviceConfig.py file
 - Move some imports into __init__.py to help simplify?
-- Consider switching from camelCase to snake_case for variables and functions
+- The Great Renamening
+    - EnvironmentConfig and EnvironmentControl are too similar in name
+        - EnvironmentControl --> Controller
+    - An EnvironmentConfig is always paired with a TestSettings
+        - TestSettings --> TestConfig
+    - Consider switching from camelCase to snake_case for variables and functions
 
 Key Features ==========
 
