@@ -90,7 +90,7 @@ class SleepEvent(NoneEvent):
 
     # Execute the event
     def exec(self) -> None:
-        logging.info(f"Sleeping for {self.seconds}...")
+        logging.info(f"Sleeping for {self.seconds} seconds...")
         time.sleep(self.seconds)
 
 """
@@ -140,7 +140,8 @@ SetPSUEvent ====================================================================
 """
 class SetPSUEvent(NonePSUEvent):
 
-    enable      : bool      # Should the power supply be enabled or disabled?
+    enable      : bool      # Should the channel be enabled or disabled?
+    keep        : bool      # Should the voltage/current settings be left alone?
     voltage     : float     # Voltage setting
     current     : float     # Current setting
 
@@ -154,34 +155,52 @@ class SetPSUEvent(NonePSUEvent):
             self.PSUidx         = 0
             self.channel        = 0
             self.enable         = True
+            self.keep           = False
             self.voltage        = 0.0
             self.current        = 0.0
 
     # Execute the event
     def exec(self, psu: PowerSupply) -> None:
-        logging.info(f"Setting channel {self.channel} of PSU #{self.PSUidx} to {self.voltage} V and {self.current} A.")
 
+        logging.info(f"Changing settings of PSU #{self.PSUidx} ({psu.config.displayName}), channel {self.channel}.")
+        
         # If disabling, disable BEFORE changing settings
         if not self.enable:
-            logging.info(f"Disabling channel {self.channel} of PSU #{self.PSUidx} ({psu.config.displayName}).")
-            psu.disableChannel(self.channel)
+            if psu.getChannelState(self.channel):
+                logging.info(f"Disabling the channel.")
+                psu.disableChannel(self.channel)
+            else:
+                logging.info(f"The channel is already disabled, skipping disable command.")
 
-        # Set voltage and verify that the setting succeeded
-        psu.setVoltage(self.channel, self.voltage)
-        actualSetVoltage = psu.getVoltage(self.channel)
-        if (actualSetVoltage != self.voltage):
-            raise RuntimeError(f"Voltage setting of channel {self.channel} of PSU #{self.PSUidx} ({actualSetVoltage} V) does not match expected setting ({self.voltage} V). The desired setting may be out-of-range for this PSU.")
-        
-        # Set current and verify that the setting succeeded
-        psu.setCurrent(self.channel, self.current)
-        actualSetCurrent = psu.getCurrent(self.channel)
-        if (actualSetCurrent != self.current):
-            raise RuntimeError(f"Current setting of channel {self.channel} of PSU #{self.PSUidx} ({actualSetCurrent} A) does not match expected setting ({self.current} A). The desired setting may be out-of-range for this PSU.")
+        if not self.keep:
+
+            # Set voltage and verify that the setting succeeded
+            if (psu.getVoltage(self.channel) == self.voltage):
+                logging.info(f"The existing voltage setting already matches the expected setting, skipping set command.")
+            else:
+                logging.info(f"Setting voltage to {self.voltage} V.")
+                psu.setVoltage(self.channel, self.voltage)
+                actualSetVoltage = psu.getVoltage(self.channel)
+                if (actualSetVoltage != self.voltage):
+                    raise RuntimeError(f"The new voltage setting ({actualSetVoltage} V) does not match the expected setting ({self.voltage} V). The desired setting may be out of range for this PSU.")
+            
+            # Set current and verify that the setting succeeded
+            if (psu.getCurrent(self.channel) == self.current):
+                logging.info(f"The existing current setting already matches the expected setting, skipping set command.")
+            else:
+                logging.info(f"Setting current to {self.current} A.")
+                psu.setCurrent(self.channel, self.current)
+                actualSetCurrent = psu.getCurrent(self.channel)
+                if (actualSetCurrent != self.current):
+                    raise RuntimeError(f"The new current setting ({actualSetCurrent} A) does not match the expected setting ({self.current} A). The desired setting may be out of range for this PSU.")
         
         # If enabling, enable AFTER changing settings
         if self.enable:
-            logging.info(f"Enabling channel {self.channel} of PSU #{self.PSUidx} ({psu.config.displayName}).")
-            psu.enableChannel(self.channel)
+            if psu.getChannelState(self.channel):
+                logging.info(f"The channel is already enabled, skipping enable command.")
+            else:
+                logging.info(f"Enabling the channel.")
+                psu.enableChannel(self.channel)
 
 """
 EvalPSUVoltageEvent ============================================================
@@ -205,11 +224,11 @@ class EvalPSUVoltageEvent(BoolPSUEvent):
     
     # Execute the event
     def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured voltage of PSU #{self.PSUidx} must be >= {self.VoltageLow} V and <= {self.VoltageHigh} V.")
+        logging.info(f"Measured voltage from PSU #{self.PSUidx} ({psu.config.displayName}), channel {self.channel}, must be >= {self.VoltageLow} V and <= {self.VoltageHigh} V.")
 
         # Measure the voltage and compare against the valid range
         measured = psu.measureVoltage(self.channel)
-        logging.info(f"Measured voltage of PSU #{self.PSUidx}: {measured} V")
+        logging.info(f"Measured voltage: {measured} V")
         if (measured >= self.VoltageLow) and (measured <= self.VoltageHigh):
             return True
         else:
@@ -237,11 +256,11 @@ class EvalPSUCurrentEvent(BoolPSUEvent):
 
     # Execute the event
     def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured current of PSU #{self.PSUidx} must be >= {self.CurrentLow} A and <= {self.CurrentHigh} A.")
+        logging.info(f"Measured current from PSU #{self.PSUidx} ({psu.config.displayName}), channel {self.channel}, must be >= {self.CurrentLow} A and <= {self.CurrentHigh} A.")
 
         # Measure the current and compare against the valid range
         measured = psu.measureCurrent(self.channel)
-        logging.info(f"Measured current of PSU #{self.PSUidx}: {measured} A")
+        logging.info(f"Measured current: {measured} A")
         if (measured >= self.CurrentLow) and (measured <= self.CurrentHigh):
             return True
         else:
@@ -269,11 +288,11 @@ class EvalPSUPowerEvent(BoolPSUEvent):
 
     # Execute the event
     def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured power of PSU #{self.PSUidx} must be >= {self.PowerLow} W and <= {self.PowerHigh} W.")
+        logging.info(f"Measured power from PSU #{self.PSUidx} ({psu.config.displayName}), channel {self.channel}, must be >= {self.PowerLow} W and <= {self.PowerHigh} W.")
 
         # Measure the power and compare against the valid range
         measured = psu.measurePower(self.channel)
-        logging.info(f"Measured power of PSU #{self.PSUidx}: {measured} W")
+        logging.info(f"Measured power: {measured} W")
         if (measured >= self.PowerLow) and (measured <= self.PowerHigh):
             return True
         else:

@@ -2,9 +2,6 @@ Fixes/Refactors ==========
 
 - Ordered shutdown of PSUList
     - In TestSettings, include a list of PSU indices that specifies the order
-- Avoid PSU enabling/disabling if already enabled/disabled
-- Add option to keep voltage/current setting? e.g. if someone wants to disable
-    without changing settings, and doesn't want to rewrite the setting each time
 - Add more comments and update existing ones
 - DeviceConfig interface?
     - PSUConfig, DAQConfig, etc.
@@ -22,11 +19,12 @@ Key Features ==========
 - Add new Event types
     - DAQ waveform retrieval
     - Interlock trigger (+ DAQ waveform triggered by falling edge)
+- Add AnaGate support
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - TBD: Add cold box control
     - Will again require calling custom scripts to keep things generalized
     - Could require a certain temperature reading before starting test
-- Add Weiner crate support (AnaGate CAN)
+- Add storage of test results (e.g. csv file)
 
 QoL Features ==========
 
@@ -34,6 +32,8 @@ QoL Features ==========
 - Add log-to-file
 - Adjust log formatting
 - Persistence of GUI state
+- Parsing in GUI to convert e.g. %addressRB% --> actual value of address
+    in command events
 - Some way to add custom interfaces to the GUI, i.e. as an option in the
     "interface" select, instead of requiring manual entry of interfaceName, etc.
     - implementationPath, implementationClass, implementationDisplayName
