@@ -1,16 +1,6 @@
 Fixes/Refactors ==========
 
-- Ordered shutdown of PSUList
-    - In TestSettings, include a list of PSU indices that specifies the order
 - Add more comments and update existing ones
-- DeviceConfig interface?
-    - PSUConfig, DAQConfig, etc.
-    - Then have a PSUConfigList, a DAQConfigList, etc., and analogs to the
-        PowerSupply interface for each
-    - A DeviceConfig would generally specify how to access the device, and
-        the behavior would be modulated by a PowerSupply or DAQ interface
-    - In concert with the above task, could also refactor things into a
-        DeviceConfig.py file
 - Move some imports into __init__.py to help simplify?
 - The Great Renamening
     - EnvironmentConfig and EnvironmentControl are too similar in name
@@ -18,33 +8,49 @@ Fixes/Refactors ==========
     - An EnvironmentConfig is always paired with a TestSettings
         - TestSettings --> TestConfig
     - Consider switching from camelCase to snake_case for variables and functions
+- Generalize into Devices
+    - Start with a Device interface, which only has init, del, and getID functions
+        - Corresponding DeviceConfig only has displayName
+    - PowerSupply will extend Device
+        - PowerSupplyConfig will extend DeviceConfig
+        - (Then each PowerSupply implementation can have its own Config)
+    - ReadoutBoard, Oscilloscope(?) will extend Device
+        - Ditto
+    - Then, EnvironmentConfig holds a DeviceConfigList
+        - Instead of indexing PSUs, events will index Devices
+        - Will need a type check during execution
+        - Add a pre-check function to TestSettings that takes a config and
+            verifies that the events index into appropriate devices, e.g. a
+            ReadoutBoard event won't try to index into a PowerSupply device
+        - May want to refactor Events to split off into different Devices first
+    - Events exist purely for one type of device
+        - Some events, like WaitEvent, don't use any device
+        - PSU events use a PowerSupply, etc.
+    - PSUList becomes DeviceList, init function is called on all Devices
 
 Key Features ==========
 
+- Add MCU (microcontroller) object
+    - Allows for reading and writing to/from pins
+    - Could be used to trigger interlocks, read voltages, etc.
 - Add new Event types
-    - DAQ waveform retrieval
+    - Waveform retrieval
     - Interlock trigger (+ DAQ waveform triggered by falling edge)
-- Add AnaGate support
-- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
-- TBD: Add cold box control
-    - Will again require calling custom scripts to keep things generalized
-    - Could require a certain temperature reading before starting test
 - Add storage of test results (e.g. csv file)
+- Add Wiener crate support through the AnaGate
 
 QoL Features ==========
 
 - Add log verbosity
 - Add log-to-file
 - Adjust log formatting
+- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - Persistence of GUI state
 - Parsing in GUI to convert e.g. %addressRB% --> actual value of address
     in command events
-- Some way to add custom interfaces to the GUI, i.e. as an option in the
-    "interface" select, instead of requiring manual entry of interfaceName, etc.
-    - implementationPath, implementationClass, implementationDisplayName
 - preferences.json
     - Holds preferences like verbosity level
-    - Would this be a good place to store peristence of GUI state? Or would that
+    - Would this be a good place to store persistence of GUI state? Or would that
         be called something more general like data.json?
 - implementations.json
     - Front-end
