@@ -2,7 +2,7 @@
 EnvironmentControl.py
 This file contains the EnvironmentControl library, which is used to send
 commands and receive data from the devices of the test environment. The primary
-function is runTest, which executes the test specified by a TestSettings object
+function is run_test, which executes the test specified by a TestConfig object
 on the test environment specified by an EnvironmentConfig object.
 
 This file also contains several helper classes and functions.
@@ -10,13 +10,15 @@ This file also contains several helper classes and functions.
 
 # Always make sure that Cerebellum and its submodules are on the import path
 import sys, os
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
-from Cerebellum.TestSettings import TestSettings
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(ABS_DIR)                # Cerebellum modules
+sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
+sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
+from Cerebellum.EnvironmentConfig import EnvironmentConfig
+from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Event import *
-from Cerebellum.PowerSupply import PowerSupply, createPowerSupply
+from Cerebellum.Device.Device import Device, DeviceConfig, create_device
+from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 import logging, signal
 logging.basicConfig(level=logging.INFO)
@@ -27,25 +29,25 @@ logging.basicConfig(level=logging.INFO)
 Main Function + Helpers ========================================================
 """
 
-def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
+def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     
     # Attempt to run the regular program sequence
     try:
 
         # Initialize all PSUs
-        logging.info("Intializing PSUs ==========")
-        PSUList = _initPSUList(config.PSUConfigList)
+        logging.info("Intializing devices ==========")
+        device_list = _init_device_list(config.device_config_list)
 
         # Report and wait for user input
         logging.info("")
-        logging.info("All PSUs initialized successfully.")
+        logging.info("All devices initialized successfully.")
         logging.info("Verify the credentials appear as expected before continuing to event execution.")
         input("Press Enter to continue...")
         logging.info("")
 
         # Execute all events
         logging.info("Executing events ==========")
-        _execEvents(settings.eventList, PSUList)
+        _execEvents(settings.event_list, device_list)
 
         # Report and wait for user input
         logging.info("")
@@ -54,7 +56,7 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
     # If there are any errors in normal operation, skip to disabling the PSUs
     # Block all external interrupts while doing so, and keep disabling the other
     # PSUs even if one of them fails
-    # A standard Exception will end runTest prematurely
+    # A standard Exception will end run_test prematurely
     # A BaseException (e.g. KeyboardInterrupt) will end the entire program
     except Exception as e:
         
@@ -73,19 +75,19 @@ def runTest(config: EnvironmentConfig, settings: TestSettings) -> None:
                 logging.info("PSUList has not been initialized. Skipping shutdown.")
             else:
                 logging.info("Disabling PSUs ==========")
-                _shutdown(settings.shutdownOrder, PSUList)
+                _shutdown(settings.shutdown_order, PSUList)
                 logging.info("")
 
-def _initPSUList(PSUConfigList: list[PSUConfig]) -> list[PowerSupply]:
-    PSUList = []
-    for idx, psu in enumerate(PSUConfigList):
-        logging.info(f"Initializing PSU #{idx} ({psu.displayName}) -----")
-        PSUList.append(createPowerSupply(psu))
+def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
+    device_list = []
+    for idx, device_config in enumerate(device_config_list):
+        logging.info(f"Initializing device #{idx} ({device_config.display_name}) -----")
+        device_list.append(create_device(device_config))
+        
+    return device_list
 
-    return PSUList
-
-def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]) -> None:
-    for idx, event in enumerate(eventList):
+def _execEvents(event_list: list[Event], PSUList: list[PowerSupply]) -> None:
+    for idx, event in enumerate(event_list):
 
         logging.info(f"Executing event #{idx} -----")
         logging.info(f"{event.type}: {event.comment}")
@@ -105,26 +107,26 @@ def _execEvents(eventList: list[Event], PSUList: list[PowerSupply]) -> None:
         else:
             raise ValueError(f"Invalid Event type: {type(event)}")
 
-def _shutdown(shutdownOrder: list[int], PSUList: list[PowerSupply]):
+def _shutdown(shutdown_order: list[int], PSUList: list[PowerSupply]):
 
-    if not shutdownOrder:
-        logging.info(f"Empty shutdownOrder, defaulting to ascending order.")
+    if not shutdown_order:
+        logging.info(f"Empty shutdown_order, defaulting to ascending order.")
         orderedPSUList = PSUList
         indexList = [i for i, _ in enumerate(PSUList)]
 
-    elif ( set(shutdownOrder) != set(range(len(PSUList))) ): # If the shutdownOrder does not include each PSU index
-        logging.warning(f"Invalid shutdownOrder (does not include every PSU index), defaulting to ascending order.")
+    elif ( set(shutdown_order) != set(range(len(PSUList))) ): # If the shutdown_order does not include each PSU index
+        logging.warning(f"Invalid shutdown_order (does not include every PSU index), defaulting to ascending order.")
         orderedPSUList = PSUList
         indexList = [i for i, _ in enumerate(PSUList)]
 
-    elif ( len(shutdownOrder) != len(set(shutdownOrder)) ): # If the shutdownOrder has duplicate indices
-        logging.warning(f"Invalid shutdownOrder (duplicate indices), defaulting to ascending order.")
+    elif ( len(shutdown_order) != len(set(shutdown_order)) ): # If the shutdown_order has duplicate indices
+        logging.warning(f"Invalid shutdown_order (duplicate indices), defaulting to ascending order.")
         orderedPSUList = PSUList
         indexList = [i for i, _ in enumerate(PSUList)]
 
     else:
-        orderedPSUList = [PSUList[i] for i in shutdownOrder]
-        indexList = shutdownOrder
+        orderedPSUList = [PSUList[i] for i in shutdown_order]
+        indexList = shutdown_order
 
     for idx, psu in zip(indexList, orderedPSUList):
         try:

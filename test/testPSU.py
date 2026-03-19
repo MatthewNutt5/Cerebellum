@@ -4,39 +4,39 @@ sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
 sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
 
 from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
-from Cerebellum.TestSettings import TestSettings, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
-from Cerebellum.EnvironmentControl import runTest
+from Cerebellum.TestConfig import TestConfig, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+from Cerebellum.Controller import run_test
 
-readJSON = False
+read_json = False
 CAEN = False
 
 config = EnvironmentConfig()
-if readJSON:
-    config.readJSON("config.json")
+if read_json:
+    config.read_json("config.json")
 else:
     configLV = PSUConfig()
-    configLV.displayName = "Low Voltage Power Supply"
+    configLV.display_name = "Low Voltage Power Supply"
     configLV.interface = "SCPI"
     # configLV.protocol = "IP"
-    # configLV.IP = "192.168.0.40"
+    # configLV.ip = "192.168.0.40"
     configLV.protocol = "Serial"
-    configLV.COM = "COM7"
+    configLV.com = "COM7"
     config.PSUConfigList.append(configLV)
 
     if CAEN:
         configHV = PSUConfig()
-        configHV.displayName = "High Voltage Power Supply"
+        configHV.display_name = "High Voltage Power Supply"
         configHV.interface = "Custom"
         configHV.implementation = "CAENPowerSupply"
-        configHV.IP = "192.168.0.1"
+        configHV.ip = "192.168.0.1"
         configHV.customConfig = {"systemType" : "SY4527", "linkType" : "TCPIP", "username" : "", "password" : "", "boardSlot" : "0"}
         config.PSUConfigList.append(configHV)
 
-    config.writeJSON("config.json")
+    config.write_json("config.json")
 
-settings = TestSettings()
-if readJSON:
-    settings.readJSON("settings.json")
+settings = TestConfig()
+if read_json:
+    settings.read_json("settings.json")
 else:
     setEvent1 = SetPSUEvent()
     setEvent1.PSUidx = 0 # The LV was the first PSU added, so it's at index 0
@@ -59,14 +59,14 @@ else:
     eval_event1.PowerLow = 3.5
     eval_event1.PowerHigh = 4.0
     
-    settings.eventList.append(eval_event1)
+    settings.event_list.append(eval_event1)
 
     if CAEN:
         eval_event2 = EvalPSUCurrentEvent()
         eval_event2.PSUidx = 0
         eval_event2.channel = 0
-        settings.eventList.append(eval_event2)
+        settings.event_list.append(eval_event2)
 
-    settings.writeJSON("settings.json")
+    settings.write_json("settings.json")
 
-runTest(config, settings)
+run_test(config, settings)

@@ -40,12 +40,12 @@ class PSUConfigWidget(QGroupBox):
 
         # Populate with data if provided
         if psu_config:
-            self.displayname_edit.setText(str(psu_config.displayName))
-            self.protocol_edit.setCurrentText(str(psu_config.protocol))
-            self.ip_edit.setText(str(psu_config.IP))
-            self.com_edit.setText(str(psu_config.COM))
+            self.displayname_edit.setText(str(psu_config.display_name))
+            self.protocol_edit.set_currentText(str(psu_config.protocol))
+            self.ip_edit.setText(str(psu_config.ip))
+            self.com_edit.setText(str(psu_config.com))
             self.baudrate_spin.setValue(int(psu_config.baudrate))
-            self.interface_edit.setCurrentText(str(psu_config.interface))
+            self.interface_edit.set_currentText(str(psu_config.interface))
             self.implementation_edit.setText(str(getattr(psu_config, 'implementation', '')))
         else:
             self.baudrate_spin.setValue(115200)
@@ -100,10 +100,10 @@ class PSUConfigWidget(QGroupBox):
 
     def get_psu_config(self):
         config = PSUConfig()
-        config.displayName = self.displayname_edit.text()
+        config.display_name = self.displayname_edit.text()
         config.protocol = self.protocol_edit.currentText()
-        config.IP = self.ip_edit.text()
-        config.COM = self.com_edit.text()
+        config.ip = self.ip_edit.text()
+        config.com = self.com_edit.text()
         config.baudrate = self.baudrate_spin.value()
         config.interface = self.interface_edit.currentText()
         config.implementation = self.implementation_edit.text()
@@ -178,7 +178,7 @@ class EnvironmentConfigGUI(QWidget):
 
         try:
             config = EnvironmentConfig()
-            config.readJSON(filepath)
+            config.read_json(filepath)
 
             # Clear current UI
             self.addressRB_edit.clear()
@@ -206,7 +206,7 @@ class EnvironmentConfigGUI(QWidget):
             for widget in self.psu_widgets:
                 config.PSUConfigList.append(widget.get_psu_config())
 
-            config.writeJSON(filepath)
+            config.write_json(filepath)
             QMessageBox.information(self, "Success", f"Successfully saved configuration to {os.path.basename(filepath)}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save JSON file:\n{str(e)}")

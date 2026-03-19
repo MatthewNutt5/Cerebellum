@@ -4,7 +4,7 @@ sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
 sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
 
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
-from Cerebellum.TestSettings import TestSettings, Event, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+from Cerebellum.TestConfig import TestConfig, Event, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel, QLineEdit, QPushButton,
@@ -37,9 +37,9 @@ class SetPSUEventWidget(QGroupBox):
         self.current_spin.setDecimals(3)
 
         if event and isinstance(event, SetPSUEvent):
-            self.psu_idx_combo.setCurrentIndex(event.PSUidx)
+            self.psu_idx_combo.set_currentIndex(event.PSUidx)
             self.channel_spin.setValue(event.channel)
-            self.enable_combo.setCurrentText("True" if event.enable else "False")
+            self.enable_combo.set_currentText("True" if event.enable else "False")
             self.voltage_spin.setValue(event.voltage)
             self.current_spin.setValue(event.current)
 
@@ -67,9 +67,9 @@ class SetPSUEventWidget(QGroupBox):
             self.psu_idx_combo.addItem("No PSUs Loaded (Idx 0)")
         else:
             for idx, psu in enumerate(self.psu_config_list):
-                self.psu_idx_combo.addItem(f"PSU {idx}: '{psu.displayName}'")
+                self.psu_idx_combo.addItem(f"PSU {idx}: '{psu.display_name}'")
         if current_idx >= 0 and current_idx < self.psu_idx_combo.count():
-            self.psu_idx_combo.setCurrentIndex(current_idx)
+            self.psu_idx_combo.set_currentIndex(current_idx)
 
     def get_event(self):
         event = SetPSUEvent()
@@ -111,7 +111,7 @@ class GenericEventWidget(QGroupBox):
         self.layout.addWidget(self.remove_button)
 
         if event:
-            self.type_combo.setCurrentText(event.type)
+            self.type_combo.set_currentText(event.type)
         self.build_ui(event=event)
 
     def clear_dynamic_layout(self):
@@ -147,9 +147,9 @@ class GenericEventWidget(QGroupBox):
             combo.addItem("No PSUs Loaded (Idx 0)")
         else:
             for idx, psu in enumerate(self.psu_config_list):
-                combo.addItem(f"PSU {idx}: '{psu.displayName}'")
+                combo.addItem(f"PSU {idx}: '{psu.display_name}'")
         if current_idx >= 0 and current_idx < combo.count():
-            combo.setCurrentIndex(current_idx)
+            combo.set_currentIndex(current_idx)
 
     def build_ui(self, text=None, event=None):
         self.clear_dynamic_layout()
@@ -165,7 +165,7 @@ class GenericEventWidget(QGroupBox):
         self.add_dynamic_field("Channel:", self.channel_spin)
 
         if event:
-             self.psu_idx_combo.setCurrentIndex(getattr(event, 'PSUidx', 0))
+             self.psu_idx_combo.set_currentIndex(getattr(event, 'PSUidx', 0))
              self.channel_spin.setValue(getattr(event, 'channel', 0))
 
         if event_type == "SetPSUEvent":
@@ -179,7 +179,7 @@ class GenericEventWidget(QGroupBox):
             self.current_spin.setDecimals(3)
 
             if event and isinstance(event, SetPSUEvent):
-                self.enable_combo.setCurrentText("True" if event.enable else "False")
+                self.enable_combo.set_currentText("True" if event.enable else "False")
                 self.voltage_spin.setValue(event.voltage)
                 self.current_spin.setValue(event.current)
 
@@ -283,11 +283,11 @@ class TestConfigGUI(QWidget):
         self.env_layout.addWidget(self.load_env_btn)
         self.main_layout.addLayout(self.env_layout)
 
-        # Load/Save TestSettings
+        # Load/Save TestConfig
         self.file_buttons_layout = QHBoxLayout()
-        self.load_button = QPushButton("Load TestSettings JSON")
+        self.load_button = QPushButton("Load TestConfig JSON")
         self.load_button.clicked.connect(self.load_json)
-        self.save_button = QPushButton("Save TestSettings JSON")
+        self.save_button = QPushButton("Save TestConfig JSON")
         self.save_button.clicked.connect(self.save_json)
         self.file_buttons_layout.addWidget(self.load_button)
         self.file_buttons_layout.addWidget(self.save_button)
@@ -319,7 +319,7 @@ class TestConfigGUI(QWidget):
         self.scroll_layout.addWidget(divider)
 
         # Event List
-        self.events_label = QLabel("<b>Test Sequence Phase (eventList)</b>")
+        self.events_label = QLabel("<b>Test Sequence Phase (event_list)</b>")
         self.scroll_layout.addWidget(self.events_label)
 
         self.event_widgets = []
@@ -335,7 +335,7 @@ class TestConfigGUI(QWidget):
 
         try:
             config = EnvironmentConfig()
-            config.readJSON(filepath)
+            config.read_json(filepath)
             self.psu_config_list = config.PSUConfigList
             self.update_all_psu_dropdowns()
             QMessageBox.information(self, "Success", f"Successfully loaded Environment Config from {os.path.basename(filepath)}")
@@ -379,13 +379,13 @@ class TestConfigGUI(QWidget):
             self.event_widgets.remove(widget)
 
     def load_json(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Open TestSettings JSON", "", "JSON Files (*.json)")
+        filepath, _ = QFileDialog.getOpenFileName(self, "Open TestConfig JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
 
         try:
-            settings = TestSettings()
-            settings.readJSON(filepath)
+            settings = TestConfig()
+            settings.read_json(filepath)
 
             # Clear current
             for w in list(self.psu_settings_widgets):
@@ -396,29 +396,29 @@ class TestConfigGUI(QWidget):
             # Populate
             for psu in settings.PSUSettingsList:
                 self.add_psu_setting_widget(psu)
-            for event in settings.eventList:
+            for event in settings.event_list:
                 self.add_event_widget(event)
 
-            QMessageBox.information(self, "Success", f"Successfully loaded TestSettings from {os.path.basename(filepath)}")
+            QMessageBox.information(self, "Success", f"Successfully loaded TestConfig from {os.path.basename(filepath)}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load TestSettings JSON file:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load TestConfig JSON file:\n{str(e)}")
 
     def save_json(self):
-        filepath, _ = QFileDialog.getSaveFileName(self, "Save TestSettings JSON", "", "JSON Files (*.json)")
+        filepath, _ = QFileDialog.getSaveFileName(self, "Save TestConfig JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
 
         try:
-            settings = TestSettings()
+            settings = TestConfig()
             for w in self.psu_settings_widgets:
                 settings.PSUSettingsList.append(w.get_event())
             for w in self.event_widgets:
-                settings.eventList.append(w.get_event())
+                settings.event_list.append(w.get_event())
 
-            settings.writeJSON(filepath)
-            QMessageBox.information(self, "Success", f"Successfully saved TestSettings to {os.path.basename(filepath)}")
+            settings.write_json(filepath)
+            QMessageBox.information(self, "Success", f"Successfully saved TestConfig to {os.path.basename(filepath)}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save TestSettings JSON file:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to save TestConfig JSON file:\n{str(e)}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,7 +1,12 @@
 Fixes/Refactors ==========
 
 - Add more comments and update existing ones
+- Write a README with details on:
+    - Standard GUI operation
+    - Custom implementations of devices, power supplies, and events
 - Move some imports into __init__.py to help simplify?
+- Turns out the type hinting in classes is just applying to "class attributes";
+    move the hints into the __init__ functions
 - The Great Renamening
     - EnvironmentConfig and EnvironmentControl are too similar in name
         - EnvironmentControl --> Controller
@@ -27,52 +32,57 @@ Fixes/Refactors ==========
         - Some events, like WaitEvent, don't use any device
         - PSU events use a PowerSupply, etc.
     - PSUList becomes DeviceList, init function is called on all Devices
+    - The GUI will filter available options for e.g. PSUidx based on the Devices
+        that match the event, e.g. don't show ReadoutBoard for a PSU event
+        - Run the pre-check function before running a test, and notify the user
+            which events need to be fixed
 
 Key Features ==========
 
-- Add MCU (microcontroller) object
+- Add storage of test results (e.g. csv file)
+- Add ReadoutBoard device
+    - At first, the idea was to use external scripts, but Cerebellum is built
+        for testing readout boards! Why should that be an ad-hoc feature?
+- Add MCU (microcontroller) device
     - Allows for reading and writing to/from pins
     - Could be used to trigger interlocks, read voltages, etc.
+    - Would have implementations like PowerSupply
+- Add Oscilloscope device
+    - Allows for waveform retrieval
+    - Would have implementations like PowerSupply
 - Add new Event types
-    - Waveform retrieval
-    - Interlock trigger (+ DAQ waveform triggered by falling edge)
-- Add storage of test results (e.g. csv file)
+    - MCU Pin read/write
+    - Oscilloscope waveform retrieval
 - Add Wiener crate support through the AnaGate
+    - Use AnaGate dll to send/receive CAN commands
 
 QoL Features ==========
 
-- Add log verbosity
-- Add log-to-file
-- Adjust log formatting
-- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
+- Procedural GUI
+    - On startup, the GUI reads each class implementing the Device interface
+        (ignoring PowerSupply) and offers a dropdown menu of options for Configs
+    - The config field types are already provided by the corresponding Config,
+        and it can additionally specify a selection of options - the GUI uses
+        this for its display
+    - Fields can also specify a name to display, e.g. ip --> "IP Address"
+    - In both of these cases, the spec will exist in a predetermined name as a
+        class attribute, e.g. self.field --> field_options and field_title
+        - If the name is not found, default to an open box and the field name,
+            respectively
+    - Special cases
+        - Any field named "type" will be ignored (this is only used for JSON r/w)
+        - Any field named "com" will use pyserial to grab all available COM ports
 - Persistence of GUI state
-- Parsing in GUI to convert e.g. %addressRB% --> actual value of address
-    in command events
 - preferences.json
-    - Holds preferences like verbosity level
+    - Verbosity level, runtime error behavior, 
     - Would this be a good place to store persistence of GUI state? Or would that
         be called something more general like data.json?
-- implementations.json
-    - Front-end
-        - On startup, GUI reads implementations specified by the JSON, and provides
-            a dropdown menu of these implementations
-        - Each implementation spec starts with the name, e.g. CAENPowerSupply
-            - This name will be used as the import name and display name
-            - If an implementation for power supply, handled in a PowerSupply folder
-        - Each spec also includes the options available and their type
-            - E.g. IP is a string, baudrate is an int, etc.
-            - Would be cool but even more complicated to specify dropdown options
-        - So the base case of each power supply is displayName and implementation,
-            then the implementation decides the config options available
-    - Back-end
-        - Then PSUConfig would need to be refactored; each implementation should
-            include its own config, e.g. CAENPowerSupply has CAENConfig
-            - These configs extend some PSUConfig interface, and EnvironmentConfig
-                stores a list of these generalized PSUConfigs
-        - Then the PowerSupply constructor calls the right implementation
-            constructor depending on its config type
-            - The constructor is given by the implementations.json
 - Build everything into a single .exe we can "release"?
     - Rename CerebellumGUI.py back to MainGUI.py and move it into the
         CerebellumGUI module, then use pyinstaller to compile everything
         starting from MainGUI.py
+- Pause on exception in run_test instead of immediate test abort
+    - Could have an (Ignore) / Pause / Abort option in preferences
+- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
+- Add log-to-file
+- Adjust log formatting

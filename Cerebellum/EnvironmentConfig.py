@@ -10,53 +10,33 @@ This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
 """
 
+# Always make sure that Cerebellum and its submodules are on the import path
+import sys, os
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(ABS_DIR)                # Cerebellum modules
+sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
+sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
+from Cerebellum.Device.Device import DeviceConfig
+
 from json import dump, load
-
-
-
-class PSUConfig:
-
-    displayName     : str               # Display name of the power supply
-    interface       : str               # Communication interface (SCPI / Custom)
-    protocol        : str               # Communication protocol (IP / Serial)
-    IP              : str               # IP address
-    COM             : str               # COM port (e.g. /dev/ttyACM0, COM1)
-    baudrate        : int               # COM baudrate
-    implementation  : str               # Name of implementation (e.g. CAENPowerSupply)
-    customConfig    : dict[str, str]    # Dict of config variables to be used by a custom implementation
-
-    def __init__(self, vars_dict: dict = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            self.displayName    = "Power Supply"
-            self.interface      = ""
-            self.protocol       = ""
-            self.IP             = ""
-            self.COM            = ""
-            self.baudrate       = 115200
-            self.implementation = ""
-            self.customConfig   = {}
+import importlib, logging
+logging.basicConfig(level=logging.INFO)
 
 
 
 class EnvironmentConfig:
 
-    addressRB       : str               # Ethernet IP address of KCU
-    PSUConfigList   : list[PSUConfig]   # List of PSUConfig objects
-
     def __init__(self):
-        self.addressRB      = ""
-        self.PSUConfigList  = []
+        self.device_config_list: list[DeviceConfig] = [] # List of DeviceConfig objects to be constructed into device_list
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
     """
-    def writeJSON(self, filepath: str) -> None:
+    def write_json(self, filepath: str) -> None:
 
         # Convert all objects to dicts
         json_dict = vars(self).copy()
-        json_dict["PSUConfigList"] = [vars(config) for config in self.PSUConfigList]
+        json_dict["device_config_list"] = [vars(config) for config in self.device_config_list]
 
         # Add identifier
         json_dict["type"] = "EnvironmentConfig"
@@ -69,23 +49,34 @@ class EnvironmentConfig:
     Reads the given filepath for a JSON representation of a configuration;
     populates the fields of the object with the values.
     """
-    def readJSON(self, filepath: str) -> None:
+    def read_json(self, filepath: str) -> None:
         
         # Open file and read JSON
         with open(filepath, 'r') as f:
             json_dict = load(f)
 
         # Check for identifier
-        if ("type" not in json_dict):
-            raise KeyError(f"Invalid EnvironmentConfig JSON file (no type field found).")
         identifier = json_dict["type"]
         if (identifier != "EnvironmentConfig"):
             raise ValueError(f"Invalid EnvironmentConfig JSON file (type field is {identifier}, not EnvironmentConfig).")
         
         # Assign fields to JSON data
-        self.addressRB = json_dict["addressRB"]
-
         # Convert object dicts to objects
-        self.PSUConfigList.clear()
-        for config in json_dict["PSUConfigList"]:
-            self.PSUConfigList.append(PSUConfig(vars_dict=config))
+        self.device_config_list.clear()
+        for config in json_dict["device_config_list"]:
+            
+            # Look for config type field to inform what sort of PowerSupplyConfig to construct
+            config_type = config["type"]
+
+            # From the config type, find the module name, and import the config constructor from the module
+            # E.g. config["type"] = SCPIPowerSupplyConfig --> module_name = SCPIPowerSupply, and use config_type as the constructor
+            module_name = config_type.replace("Config", "")
+            if (module_name == config_type):
+                raise TypeError(f"Config type ({config_type}) does not have \"Config\" in its name; cannot produce module name.")
+            try:
+                module = importlib.import_module(f"Cerebellum.Device.{module_name}")
+                constructor = getattr(module, config_type)
+                self.device_config_list.append(constructor(vars_dict=config))
+            except Exception as e:
+                logging.warning(f"Generated DeviceConfig module/constructor name (Cerebellum.Device.{module_name}.{config_type}) is invalid: {e}")
+                logging.warning(f"Skipping config...")
