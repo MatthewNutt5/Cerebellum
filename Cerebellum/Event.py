@@ -4,10 +4,12 @@ Placeholder
 
 # Always make sure that Cerebellum and its submodules are on the import path
 import sys, os
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from Cerebellum.Device.PowerSupply import PowerSupply
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(ABS_DIR)                # Cerebellum modules
+sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
+sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
+from Cerebellum.Device.Device import Device, DeviceConfig
+from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from abc import ABC, abstractmethod
 import logging, time, subprocess
@@ -18,113 +20,121 @@ logging.basicConfig(level=logging.INFO)
 """
 Event Interface ================================================================
 """
-# A generic Event
-class Event(ABC):
 
-    type        : str       # The type of event (i.e. class name), for JSON r/w
-    comment     : str       # User-defined comment
+# --- Event: A generic Event that doesn't require any device
+class Event(ABC):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
     def __init__(self, vars_dict: dict = {}):
-        pass
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            self.comment: str = ""      # User-defined comment
 
     # Execute the event
-    @abstractmethod
-    def exec(self):
-        pass
-
-# An Event that returns None
-class NoneEvent(Event):
-
-    # Execute the event; return None (e.g. setPSUEvent, sleepEvent, etc.)
     @abstractmethod
     def exec(self) -> None:
         pass
 
-# An Event that returns None and uses a PSU
-class NonePSUEvent(NoneEvent):
 
-    PSUidx      : int       # Index of the PSU
-    channel     : int       # PSU channel to impart these settings
 
-    # Execute the event; return None (e.g. setPSUEvent, sleepEvent, etc.)
+# --- DeviceEvent: An Event that requires a generic device
+class DeviceEvent(Event):
+
+    # Either init with default values or init with input fields (read from JSON)
+    @abstractmethod
+    def __init__(self, vars_dict: dict = {}):
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            super().__init__()          # Inits comment
+            self.device_idx: int = 0    # Index of the device
+
+    # Execute the event
+    @abstractmethod
+    def exec(self, device: Device) -> None:
+        pass
+
+    # Check that the given config is actually the config you want (in case an Event refers to the wrong device in device_config_list)
+    @abstractmethod
+    def verify(self, config: DeviceConfig) -> None:
+        pass
+
+
+
+# --- PowerSupplyEvent: An Event that requires a PowerSupply device
+class PowerSupplyEvent(DeviceEvent):
+
+    # Either init with default values or init with input fields (read from JSON)
+    @abstractmethod
+    def __init__(self, vars_dict: dict = {}):
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            super().__init__()          # Inits comment and device_idx
+            self.channel: int = 0       # PSU channel
+
+    # Execute the event
     @abstractmethod
     def exec(self, psu: PowerSupply) -> None:
         pass
 
-# An Event that returns bool
-class BoolEvent(Event):
+    # Check that the given config is actually a PowerSupplyConfig (in case an Event refers to the wrong device in device_config_list)
+    def verify(self, config: DeviceConfig) -> None:
+        if not isinstance(config, PowerSupplyConfig):
+            raise TypeError(f"Cannot run a PowerSupply Event on a non-PowerSupply Device; this Event likely has a faulty device_idx.")
 
-    # Execute the event; return bool (e.g. Eval events)
-    @abstractmethod
-    def exec(self) -> bool:
-        pass
 
-# An Event that returns bool and uses a PSU
-class BoolPSUEvent(BoolEvent):
-
-    PSUidx      : int       # Index of the PSU
-    channel     : int       # PSU channel to measure
-
-    # Execute the event; return bool (e.g. Eval events)
-    @abstractmethod
-    def exec(self, psu: PowerSupply) -> bool:
-        pass
 
 """
-SleepEvent =====================================================================
+Device-less Events =============================================================
 """
-class SleepEvent(NoneEvent):
 
-    seconds     : float     # Number of seconds to sleep for
+# --- SleepEvent: Sleep for a float number of seconds
+class SleepEvent(Event):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "SleepEvent"
-            self.comment        = ""
-            self.seconds        = 3.0
+            super().__init__()          # Inits comment
+            self.seconds: float = 3.0   # Number of seconds to sleep for
 
     # Execute the event
     def exec(self) -> None:
         logging.info(f"Sleeping for {self.seconds} seconds...")
         time.sleep(self.seconds)
 
-"""
-WaitEvent ======================================================================
-"""
-class WaitEvent(NoneEvent):
+
+
+# --- WaitEvent: Wait for user input before continuing
+class WaitEvent(Event):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "WaitEvent"
-            self.comment        = ""
+            super().__init__() # Inits comment
 
     # Execute the event
     def exec(self) -> None:
         input("Press Enter to continue...")
 
-"""
-CommandEvent ===================================================================
-"""
-class CommandEvent(NoneEvent):
 
-    command     : str     # Command to run as a subprocess
+
+# --- CommandEvent: Run an arbitrary command as a subprocess
+class CommandEvent(Event):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "CommandEvent"
-            self.comment        = ""
-            self.command        = ""
+            super().__init__()          # Inits comment
+            self.command: str = ""      # Command to run as a subprocess
 
     # Execute the event
     def exec(self) -> None:
@@ -135,34 +145,30 @@ class CommandEvent(NoneEvent):
             logging.warning(f"During command execution, an exception was encountered: {e}")
             pass
 
-"""
-SetPSUEvent ====================================================================
-"""
-class SetPSUEvent(NonePSUEvent):
 
-    enable      : bool      # Should the channel be enabled or disabled?
-    keep        : bool      # Should the voltage/current settings be left alone?
-    voltage     : float     # Voltage setting
-    current     : float     # Current setting
+
+"""
+PowerSupply Events =============================================================
+"""
+
+# --- SetPSUEvent: Change the settings of a PowerSupply at a particular channel
+class SetPSUEvent(PowerSupplyEvent):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "SetPSUEvent"
-            self.comment        = ""
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.enable         = True
-            self.keep           = False
-            self.voltage        = 0.0
-            self.current        = 0.0
+            super().__init__()                  # Inits comment, device_idx, and channel
+            self.enable     : bool  = True      # Should the channel be enabled or disabled?
+            self.keep       : bool  = False     # Should the voltage/current settings be left alone?
+            self.voltage    : float = 0.0       # Voltage setting
+            self.current    : float = 0.0       # Current setting
 
     # Execute the event
     def exec(self, psu: PowerSupply) -> None:
 
-        logging.info(f"Changing settings of PSU #{self.PSUidx} ({psu.config.display_name}), channel {self.channel}.")
+        logging.info(f"Changing settings of PSU #{self.device_idx} ({psu.config.display_name}), channel {self.channel}.")
         
         # If disabling, disable BEFORE changing settings
         if not self.enable:
@@ -172,6 +178,7 @@ class SetPSUEvent(NonePSUEvent):
             else:
                 logging.info(f"The channel is already disabled, skipping disable command.")
 
+        # Change settings only if !keep
         if not self.keep:
 
             # Set voltage and verify that the setting succeeded
@@ -180,9 +187,9 @@ class SetPSUEvent(NonePSUEvent):
             else:
                 logging.info(f"Setting voltage to {self.voltage} V.")
                 psu.set_voltage(self.channel, self.voltage)
-                actualSetVoltage = psu.get_voltage(self.channel)
-                if (actualSetVoltage != self.voltage):
-                    raise RuntimeError(f"The new voltage setting ({actualSetVoltage} V) does not match the expected setting ({self.voltage} V). The desired setting may be out of range for this PSU.")
+                actual_set_voltage = psu.get_voltage(self.channel)
+                if (actual_set_voltage != self.voltage):
+                    raise RuntimeError(f"The new voltage setting ({actual_set_voltage} V) does not match the expected setting ({self.voltage} V). The desired setting may be out of range for this PSU.")
             
             # Set current and verify that the setting succeeded
             if (psu.get_current(self.channel) == self.current):
@@ -190,9 +197,9 @@ class SetPSUEvent(NonePSUEvent):
             else:
                 logging.info(f"Setting current to {self.current} A.")
                 psu.set_current(self.channel, self.current)
-                actualSetCurrent = psu.get_current(self.channel)
-                if (actualSetCurrent != self.current):
-                    raise RuntimeError(f"The new current setting ({actualSetCurrent} A) does not match the expected setting ({self.current} A). The desired setting may be out of range for this PSU.")
+                actual_set_current = psu.get_current(self.channel)
+                if (actual_set_current != self.current):
+                    raise RuntimeError(f"The new current setting ({actual_set_current} A) does not match the expected setting ({self.current} A). The desired setting may be out of range for this PSU.")
         
         # If enabling, enable AFTER changing settings
         if self.enable:
@@ -202,98 +209,83 @@ class SetPSUEvent(NonePSUEvent):
                 logging.info(f"Enabling the channel.")
                 psu.enable_channel(self.channel)
 
-"""
-EvalPSUVoltageEvent ============================================================
-"""
-class EvalPSUVoltageEvent(BoolPSUEvent):
 
-    VoltageLow  : float # The measured voltage must be >= this voltage
-    VoltageHigh : float # The measured voltage must be <= this voltage
+
+# --- EvalPSUVoltageEvent: Evaluate a PowerSupply's measured voltage at a particular channel
+class EvalPSUVoltageEvent(PowerSupplyEvent):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "EvalPSUVoltageEvent"
-            self.comment        = ""
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.VoltageLow     = 0.0
-            self.VoltageHigh    = float('inf')
+            super().__init__()                              # Inits comment, device_idx, and channel
+            self.voltage_low    : float = float('-inf')     # The measured voltage must be >= this voltage
+            self.voltage_high   : float = float('inf')      # The measured voltage must be <= this voltage
     
     # Execute the event
-    def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured voltage from PSU #{self.PSUidx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.VoltageLow} V and <= {self.VoltageHigh} V.")
+    def exec(self, psu: PowerSupply) -> None:
+
+        logging.info(f"Measured voltage from PSU #{self.device_idx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.voltage_low} V and <= {self.voltage_high} V.")
 
         # Measure the voltage and compare against the valid range
         measured = psu.measure_voltage(self.channel)
         logging.info(f"Measured voltage: {measured} V")
-        if (measured >= self.VoltageLow) and (measured <= self.VoltageHigh):
-            return True
+        if (measured >= self.voltage_low) and (measured <= self.voltage_high):
+            logging.info("PASS")
         else:
-            return False
+            logging.info("FAIL")
 
-"""
-EvalPSUCurrentEvent ============================================================
-"""
-class EvalPSUCurrentEvent(BoolPSUEvent):
 
-    CurrentLow  : float # The measured current must be >= this current
-    CurrentHigh : float # The measured current must be <= this current
+
+# --- EvalPSUCurrentEvent: Evaluate a PowerSupply's measured current at a particular channel
+class EvalPSUCurrentEvent(PowerSupplyEvent):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "EvalPSUCurrentEvent"
-            self.comment        = ""
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.CurrentLow     = 0.0
-            self.CurrentHigh    = float('inf')
+            super().__init__()                              # Inits comment, device_idx, and channel
+            self.current_low    : float = float('-inf')     # The measured current must be >= this current
+            self.current_high   : float = float('inf')      # The measured current must be <= this current
 
     # Execute the event
-    def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured current from PSU #{self.PSUidx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.CurrentLow} A and <= {self.CurrentHigh} A.")
+    def exec(self, psu: PowerSupply) -> None:
+
+        logging.info(f"Measured current from PSU #{self.device_idx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.current_low} A and <= {self.current_high} A.")
 
         # Measure the current and compare against the valid range
         measured = psu.measure_current(self.channel)
         logging.info(f"Measured current: {measured} A")
-        if (measured >= self.CurrentLow) and (measured <= self.CurrentHigh):
-            return True
+        if (measured >= self.current_low) and (measured <= self.current_high):
+            logging.info("PASS")
         else:
-            return False
+            logging.info("FAIL")
 
-"""
-EvalPSUPowerEvent ==============================================================
-"""
-class EvalPSUPowerEvent(BoolPSUEvent):
 
-    PowerLow    : float # The measured power must be >= this power
-    PowerHigh   : float # The measured power must be <= this power
+
+# --- EvalPSUPowerEvent: Evaluate a PowerSupply's measured power at a particular channel
+class EvalPSUPowerEvent(PowerSupplyEvent):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           = "EvalPSUPowerEvent"
-            self.comment        = ""
-            self.PSUidx         = 0
-            self.channel        = 0
-            self.PowerLow       = 0.0
-            self.PowerHigh      = float('inf')
+            super().__init__()                              # Inits comment, device_idx, and channel
+            self.power_low      : float = float('-inf')     # The measured power must be >= this power
+            self.power_high     : float = float('inf')      # The measured power must be <= this power
 
     # Execute the event
-    def exec(self, psu: PowerSupply) -> bool:
-        logging.info(f"Measured power from PSU #{self.PSUidx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.PowerLow} W and <= {self.PowerHigh} W.")
+    def exec(self, psu: PowerSupply) -> None:
+
+        logging.info(f"Measured power from PSU #{self.device_idx} ({psu.config.display_name}), channel {self.channel}, must be >= {self.power_low} W and <= {self.power_high} W.")
 
         # Measure the power and compare against the valid range
         measured = psu.measure_power(self.channel)
         logging.info(f"Measured power: {measured} W")
-        if (measured >= self.PowerLow) and (measured <= self.PowerHigh):
-            return True
+        if (measured >= self.power_low) and (measured <= self.power_high):
+            logging.info("PASS")
         else:
-            return False
+            logging.info("FAIL")

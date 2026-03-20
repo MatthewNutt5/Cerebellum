@@ -33,8 +33,15 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     
     # Attempt to run the regular program sequence
     try:
+        
+        # Before anything, check that each DeviceEvent will refer to the correct device
+        logging.info("Verifying event list ==========")
+        for event in settings.event_list:
+            if isinstance(event, DeviceEvent):
+                event.verify(config.device_config_list[event.device_idx])
+        logging.info("All events verified successfully.")
 
-        # Initialize all PSUs
+        # Initialize all devices
         logging.info("Intializing devices ==========")
         device_list = _init_device_list(config.device_config_list)
 
@@ -70,13 +77,15 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
             print()
             logging.info("")
 
-            # If PSUList has been initialized (i.e. all PSUs were initialized), shutdown all of them
-            if "PSUList" not in locals():
-                logging.info("PSUList has not been initialized. Skipping shutdown.")
+            # If device_list has been initialized (i.e. all PSUs were initialized), shutdown all of them
+            if "device_list" not in locals():
+                logging.info("device_list has not been initialized. Skipping PSU shutdown.")
             else:
                 logging.info("Disabling PSUs ==========")
-                _shutdown(settings.shutdown_order, PSUList)
+                _shutdown(settings.shutdown_order, device_list)
                 logging.info("")
+
+
 
 def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
     device_list = []
@@ -86,26 +95,20 @@ def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
         
     return device_list
 
-def _execEvents(event_list: list[Event], PSUList: list[PowerSupply]) -> None:
+
+
+def _execEvents(event_list: list[Event], device_list: list[Device]) -> None:
     for idx, event in enumerate(event_list):
 
         logging.info(f"Executing event #{idx} -----")
-        logging.info(f"{event.type}: {event.comment}")
+        logging.info(f"{event.__class__.__name__}: {event.comment}")
 
-        if isinstance(event, NoneEvent): # Events that return None...
-            if isinstance(event, NonePSUEvent): # ...and use a PSU
-                event.exec(PSUList[event.PSUidx])
-            else:
-                event.exec()
-
-        elif isinstance(event, BoolEvent): # Events that return bool...
-            if isinstance(event, BoolPSUEvent): # ...and use a PSU
-                logging.info("PASS" if event.exec(PSUList[event.PSUidx]) else "FAIL")
-            else:
-                logging.info("PASS" if event.exec() else "FAIL")
-
+        if isinstance(event, DeviceEvent):
+            event.exec(device_list[event.device_idx])
         else:
-            raise ValueError(f"Invalid Event type: {type(event)}")
+            event.exec()
+
+
 
 def _shutdown(shutdown_order: list[int], PSUList: list[PowerSupply]):
 

@@ -37,7 +37,6 @@ class SCPIPowerSupplyConfig(PowerSupplyConfig):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           : str   = "SCPIPowerSupplyConfig"   # The type of device config (i.e. class name), for JSON r/w
             self.display_name   : str   = "SCPI Power Supply"       # Display name of the power supply
             self.protocol       : str   = ""                        # Communication protocol (IP / Serial)
             self.ip             : str   = ""                        # IP address

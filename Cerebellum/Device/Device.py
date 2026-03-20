@@ -22,8 +22,7 @@ class DeviceConfig(ABC):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           : str   = "DeviceConfig"  # The type of device config (i.e. class name), for JSON r/w
-            self.display_name   : str   = "Device"        # Display name of the device
+            self.display_name: str = "Device"   # Display name of the device
 
 
 
@@ -51,15 +50,18 @@ class Device(ABC):
 
 
 def create_device(config: DeviceConfig) -> Device:
-    # ___Config --> Use constructor ___ from module ___
-    # e.g. SCPIPowerSupplyConfig --> SCPIPowerSupply
-    config_name = config.__class__.__name__
-    constructor_name = config_name.replace("Config", "")
-    if (constructor_name == config_name):
-        raise TypeError(f"Config object ({config_name}) does not have \"Config\" in its name; cannot produce constructor name.")
+
+    # From the config class_name, produce the module/instance name
+    # E.g. config_class_name = "SCPIPowerSupplyConfig" --> module_name = "SCPIPowerSupply"
+    config_class_name = config.__class__.__name__
+    module_name = config_class_name.replace("Config", "")
+    if (module_name == config_class_name):
+        raise TypeError(f"Config class_name ({config_class_name}) does not have \"Config\" in its name; cannot produce module name.")
+    
+    # Import the instance constructor from the module
     try:
-        module = importlib.import_module(f"Cerebellum.Device.{constructor_name}")
-        constructor = getattr(module, constructor_name)
+        module = importlib.import_module(f"Cerebellum.Device.{module_name}")
+        constructor = getattr(module, module_name)
         return constructor(config)
     except Exception as e:
-        raise TypeError(f"Generated Device module/constructor name (Cerebellum.Device.{constructor_name}.{constructor_name}) is invalid: {e}")
+        raise TypeError(f"Generated Device module/constructor name (Cerebellum.Device.{module_name}.{module_name}) is invalid: {e}")

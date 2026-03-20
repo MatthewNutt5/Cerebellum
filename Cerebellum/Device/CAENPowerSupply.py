@@ -53,7 +53,6 @@ class CAENPowerSupplyConfig:
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           : str   = "CAENPowerSupplyConfig"   # The type of device config (i.e. class name), for JSON r/w
             self.display_name   : str   = "CAEN Power Supply"       # Display name of the power supply
             self.system_type    : str   = "SY4527"                  # CAEN crate system type
             self.link_type      : str   = "TCPIP"                   # CAEN crate link type

@@ -40,8 +40,7 @@ class PowerSupplyConfig(DeviceConfig):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
-            self.type           : str   = "PowerSupplyConfig" # The type of device config (i.e. class name), for JSON r/w
-            self.display_name   : str   = "Power Supply"      # Display name of the power supply
+            self.display_name: str = "Power Supply"     # Display name of the power supply
 
 
 

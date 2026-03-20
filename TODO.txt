@@ -5,41 +5,13 @@ Fixes/Refactors ==========
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
 - Move some imports into __init__.py to help simplify?
-- Turns out the type hinting in classes is just applying to "class attributes";
-    move the hints into the __init__ functions
-- The Great Renamening
-    - EnvironmentConfig and EnvironmentControl are too similar in name
-        - EnvironmentControl --> Controller
-    - An EnvironmentConfig is always paired with a TestSettings
-        - TestSettings --> TestConfig
-    - Consider switching from camelCase to snake_case for variables and functions
-- Generalize into Devices
-    - Start with a Device interface, which only has init, del, and getID functions
-        - Corresponding DeviceConfig only has displayName
-    - PowerSupply will extend Device
-        - PowerSupplyConfig will extend DeviceConfig
-        - (Then each PowerSupply implementation can have its own Config)
-    - ReadoutBoard, Oscilloscope(?) will extend Device
-        - Ditto
-    - Then, EnvironmentConfig holds a DeviceConfigList
-        - Instead of indexing PSUs, events will index Devices
-        - Will need a type check during execution
-        - Add a pre-check function to TestSettings that takes a config and
-            verifies that the events index into appropriate devices, e.g. a
-            ReadoutBoard event won't try to index into a PowerSupply device
-        - May want to refactor Events to split off into different Devices first
-    - Events exist purely for one type of device
-        - Some events, like WaitEvent, don't use any device
-        - PSU events use a PowerSupply, etc.
-    - PSUList becomes DeviceList, init function is called on all Devices
-    - The GUI will filter available options for e.g. PSUidx based on the Devices
-        that match the event, e.g. don't show ReadoutBoard for a PSU event
-        - Run the pre-check function before running a test, and notify the user
-            which events need to be fixed
+- Combine the three EvalPSUEvents into one Eval event that chooses one (V/I/P)?
 
 Key Features ==========
 
 - Add storage of test results (e.g. csv file)
+    - Events no longer return anything to run_test, so maybe start a csv in
+        run_test, pass it to event.exec(), and allow them to write outputs?
 - Add ReadoutBoard device
     - At first, the idea was to use external scripts, but Cerebellum is built
         for testing readout boards! Why should that be an ad-hoc feature?
@@ -70,13 +42,11 @@ QoL Features ==========
         - If the name is not found, default to an open box and the field name,
             respectively
     - Special cases
-        - Any field named "type" will be ignored (this is only used for JSON r/w)
         - Any field named "com" will use pyserial to grab all available COM ports
 - Persistence of GUI state
-- preferences.json
-    - Verbosity level, runtime error behavior, 
-    - Would this be a good place to store persistence of GUI state? Or would that
-        be called something more general like data.json?
+- Test preferences
+    - Verbosity level, runtime error behavior, log to file, save test results to
+        file, 
 - Build everything into a single .exe we can "release"?
     - Rename CerebellumGUI.py back to MainGUI.py and move it into the
         CerebellumGUI module, then use pyinstaller to compile everything

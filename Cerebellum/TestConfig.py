@@ -38,12 +38,16 @@ class TestConfig:
     """
     def write_json(self, filepath: str):
 
-        # Convert all objects to dicts
+        # Convert all objects to dicts, add identifiers to each
         json_dict = vars(self).copy()
-        json_dict["event_list"] = [vars(event) for event in self.event_list]
+        json_dict["event_list"] = []
+        for event in self.event_list:
+            event_dict = vars(event)
+            event_dict["class_name"] = event.__class__.__name__
+            json_dict["event_list"].append(event_dict)
 
-        # Add identifier
-        json_dict["type"] = "TestConfig"
+        # Add identifier for the JSON itself
+        json_dict["class_name"] = self.__class__.__name__
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -60,18 +64,23 @@ class TestConfig:
             json_dict = load(f)
         
         # Check for identifier
-        identifier = json_dict["type"]
-        if (identifier != "TestConfig"):
-            raise ValueError(f"Invalid TestConfig JSON file (type field is {identifier}, not TestConfig).")
+        json_class_name = json_dict.pop("class_name")
+        if (json_class_name != self.__class__.__name__):
+            raise ValueError(f"Invalid {self.__class__.__name__} JSON file (class_name field is {json_class_name}, not {self.__class__.__name__}).")
         
         # Assign fields to JSON data
         # Convert object dicts to objects
         self.event_list.clear()
         for event in json_dict["event_list"]:
-            event_type = event["type"]
+
+            # Look for event class_name field to inform what sort of Event to construct
+            # Also remove class_name from the dict so it doesn't end up in the instance
+            event_class_name = event.pop("class_name")
+
+            # From the event class_name, import its constructor from the Event module
             try:
-                constructor = getattr(EVT_MOD, event_type)
+                constructor = getattr(EVT_MOD, event_class_name)
                 self.event_list.append(constructor(vars_dict=event))
             except Exception as e:
-                logging.warning(f"Invalid Event type ({event_type}) found during JSON read: {e}")
+                logging.warning(f"Invalid Event class_name ({event_class_name}) found during JSON read: {e}")
                 logging.warning(f"Skipping event...")

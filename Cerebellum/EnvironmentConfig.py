@@ -34,12 +34,16 @@ class EnvironmentConfig:
     """
     def write_json(self, filepath: str) -> None:
 
-        # Convert all objects to dicts
+        # Convert all objects to dicts, add identifiers to each
         json_dict = vars(self).copy()
-        json_dict["device_config_list"] = [vars(config) for config in self.device_config_list]
+        json_dict["device_config_list"] = []
+        for config in self.device_config_list:
+            config_dict = vars(config)
+            config_dict["class_name"] = config.__class__.__name__
+            json_dict["device_config_list"].append(config_dict)
 
-        # Add identifier
-        json_dict["type"] = "EnvironmentConfig"
+        # Add identifier for the JSON itself
+        json_dict["class_name"] = self.__class__.__name__
         
         # Open file and write JSON
         with open(filepath, 'w') as f:
@@ -56,27 +60,30 @@ class EnvironmentConfig:
             json_dict = load(f)
 
         # Check for identifier
-        identifier = json_dict["type"]
-        if (identifier != "EnvironmentConfig"):
-            raise ValueError(f"Invalid EnvironmentConfig JSON file (type field is {identifier}, not EnvironmentConfig).")
+        json_class_name = json_dict.pop("class_name")
+        if (json_class_name != self.__class__.__name__):
+            raise ValueError(f"Invalid {self.__class__.__name__} JSON file (class_name field is {json_class_name}, not {self.__class__.__name__}).")
         
         # Assign fields to JSON data
         # Convert object dicts to objects
         self.device_config_list.clear()
         for config in json_dict["device_config_list"]:
             
-            # Look for config type field to inform what sort of PowerSupplyConfig to construct
-            config_type = config["type"]
+            # Look for config class_name field to inform what sort of Config to construct
+            # Also remove class_name from the dict so it doesn't end up in the instance
+            config_class_name = config.pop("class_name")
 
-            # From the config type, find the module name, and import the config constructor from the module
-            # E.g. config["type"] = SCPIPowerSupplyConfig --> module_name = SCPIPowerSupply, and use config_type as the constructor
-            module_name = config_type.replace("Config", "")
-            if (module_name == config_type):
-                raise TypeError(f"Config type ({config_type}) does not have \"Config\" in its name; cannot produce module name.")
+            # From the config class_name, produce the module name
+            # E.g. config_class_name = "SCPIPowerSupplyConfig" --> module_name = "SCPIPowerSupply", and use config_class_name as the constructor
+            module_name = config_class_name.replace("Config", "")
+            if (module_name == config_class_name):
+                raise TypeError(f"Config class_name ({config_class_name}) does not have \"Config\" in its name; cannot produce module name.")
+            
+            # Import the config constructor from the module
             try:
                 module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-                constructor = getattr(module, config_type)
+                constructor = getattr(module, config_class_name)
                 self.device_config_list.append(constructor(vars_dict=config))
             except Exception as e:
-                logging.warning(f"Generated DeviceConfig module/constructor name (Cerebellum.Device.{module_name}.{config_type}) is invalid: {e}")
-                logging.warning(f"Skipping config...")
+                logging.warning(f"Generated DeviceConfig module/constructor name (Cerebellum.Device.{module_name}.{config_class_name}) is invalid: {e}")
+                logging.warning("Skipping config...")
