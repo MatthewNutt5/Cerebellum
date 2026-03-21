@@ -54,7 +54,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
 
         # Execute all events
         logging.info("Executing events ==========")
-        _execEvents(settings.event_list, device_list)
+        _exec_events(settings.event_list, device_list)
 
         # Report and wait for user input
         logging.info("")
@@ -79,7 +79,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
 
             # If device_list has been initialized (i.e. all PSUs were initialized), shutdown all of them
             if "device_list" not in locals():
-                logging.info("device_list has not been initialized. Skipping PSU shutdown.")
+                logging.info("Device list has not been initialized. Skipping PSU shutdown.")
             else:
                 logging.info("Disabling PSUs ==========")
                 _shutdown(settings.shutdown_order, device_list)
@@ -97,7 +97,7 @@ def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
 
 
 
-def _execEvents(event_list: list[Event], device_list: list[Device]) -> None:
+def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
     for idx, event in enumerate(event_list):
 
         logging.info(f"Executing event #{idx} -----")
@@ -110,34 +110,32 @@ def _execEvents(event_list: list[Event], device_list: list[Device]) -> None:
 
 
 
-def _shutdown(shutdown_order: list[int], PSUList: list[PowerSupply]):
+def _shutdown(shutdown_order: list[int], device_list: list[Device]):
+    
+    # The default order follows order of initialization, and also includes every PowerSupply
+    ascending_order = [idx for idx, device in enumerate(device_list) if isinstance(device, PowerSupply)]
+    final_order = ascending_order
 
     if not shutdown_order:
         logging.info(f"Empty shutdown_order, defaulting to ascending order.")
-        orderedPSUList = PSUList
-        indexList = [i for i, _ in enumerate(PSUList)]
 
-    elif ( set(shutdown_order) != set(range(len(PSUList))) ): # If the shutdown_order does not include each PSU index
+    elif not ( set(ascending_order).issubset(set(shutdown_order)) ):
         logging.warning(f"Invalid shutdown_order (does not include every PSU index), defaulting to ascending order.")
-        orderedPSUList = PSUList
-        indexList = [i for i, _ in enumerate(PSUList)]
-
-    elif ( len(shutdown_order) != len(set(shutdown_order)) ): # If the shutdown_order has duplicate indices
-        logging.warning(f"Invalid shutdown_order (duplicate indices), defaulting to ascending order.")
-        orderedPSUList = PSUList
-        indexList = [i for i, _ in enumerate(PSUList)]
 
     else:
-        orderedPSUList = [PSUList[i] for i in shutdown_order]
-        indexList = shutdown_order
+        final_order = shutdown_order
 
-    for idx, psu in zip(indexList, orderedPSUList):
+    for idx in final_order:
         try:
-            if psu:
-                logging.info(f"Disabling PSU #{idx} -----")
-                psu.shutdown()
+            device = device_list[idx]
+            if isinstance(device, PowerSupply):
+                logging.info(f"Disabling device #{idx} ({device.config.display_name}) -----")
+                device.shutdown()
+            else:
+                logging.warning(f"Device #{idx} ({device.config.display_name}) in shutdown_list is not a PowerSupply; cannot shutdown.")
+
         except Exception as e:
-            logging.warning(f"While attemping to disable PSU #{idx}, an exception was encountered: {e}")
+            logging.error(f"While attemping to disable device #{idx} ({device.config.display_name}), an exception was encountered: {e}")
             pass
 
 

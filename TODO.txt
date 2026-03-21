@@ -22,10 +22,7 @@ Key Features ==========
 - Add Oscilloscope device
     - Allows for waveform retrieval
     - Would have implementations like PowerSupply
-- Add new Event types
-    - MCU Pin read/write
-    - Oscilloscope waveform retrieval
-- Add Wiener crate support through the AnaGate
+- Add Wiener crate support through the AnaGate (as a PowerSupply)
     - Use AnaGate dll to send/receive CAN commands
 
 QoL Features ==========
