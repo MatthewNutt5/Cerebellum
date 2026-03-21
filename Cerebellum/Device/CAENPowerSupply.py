@@ -37,7 +37,7 @@ class CAENPowerSupplyConfig:
     board_slot_title    = "Board Slot #"
 
     # *_options = Options for field to provide in a dropdown menu
-    # Any field without a corresponding field_options will default to a text box
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
     system_type_options = [
         "SY1527", "SY2527", "SY4527", "SY5527", "N568", "V65XX", "N1470",
         "V8100", "N568E", "DT55XX", "FTK", "DT55XXE", "N1068", "SMARTHV",

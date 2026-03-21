@@ -28,7 +28,7 @@ class SCPIPowerSupplyConfig(PowerSupplyConfig):
     baudrate_title      = "Baudrate"
     
     # *_options = Options for field to provide in a dropdown menu
-    # Any field without a corresponding field_options will default to a text box
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
     protocol_options    = ["IP", "Serial"]
     baudrate_options    = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
 

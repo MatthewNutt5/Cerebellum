@@ -24,6 +24,13 @@ Event Interface ================================================================
 # --- Event: A generic Event that doesn't require any device
 class Event(ABC):
 
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    comment_title: str = "Comment"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
     def __init__(self, vars_dict: dict = {}):
@@ -41,6 +48,13 @@ class Event(ABC):
 
 # --- DeviceEvent: An Event that requires a generic device
 class DeviceEvent(Event):
+
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    device_idx_title: str = "Device Index"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
@@ -65,6 +79,13 @@ class DeviceEvent(Event):
 
 # --- PowerSupplyEvent: An Event that requires a PowerSupply device
 class PowerSupplyEvent(DeviceEvent):
+
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    channel_title: str = "PSU Channel"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
@@ -93,6 +114,13 @@ Device-less Events =============================================================
 
 # --- SleepEvent: Sleep for a float number of seconds
 class SleepEvent(Event):
+
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    seconds_title: str = "Delay (s)"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
@@ -128,6 +156,13 @@ class WaitEvent(Event):
 # --- CommandEvent: Run an arbitrary command as a subprocess
 class CommandEvent(Event):
 
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    command_title: str = "Command"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
@@ -153,6 +188,16 @@ PowerSupply Events =============================================================
 
 # --- SetPSUEvent: Change the settings of a PowerSupply at a particular channel
 class SetPSUEvent(PowerSupplyEvent):
+
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    enable_title    : str = "Enable/Disable Output"
+    keep_title      : str = "Keep Voltage/Current Settings"
+    voltage_title   : str = "Voltage (V)"
+    current_title   : str = "Current (A)"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
@@ -214,6 +259,14 @@ class SetPSUEvent(PowerSupplyEvent):
 # --- EvalPSUVoltageEvent: Evaluate a PowerSupply's measured voltage at a particular channel
 class EvalPSUVoltageEvent(PowerSupplyEvent):
 
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    voltage_low_title   : str = "Lower Bound (V)"
+    voltage_high_title  : str = "Upper Bound (V)"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
@@ -241,6 +294,14 @@ class EvalPSUVoltageEvent(PowerSupplyEvent):
 # --- EvalPSUCurrentEvent: Evaluate a PowerSupply's measured current at a particular channel
 class EvalPSUCurrentEvent(PowerSupplyEvent):
 
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    current_low_title   : str = "Lower Bound (A)"
+    current_high_title  : str = "Upper Bound (A)"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):
         if vars_dict:
@@ -267,6 +328,14 @@ class EvalPSUCurrentEvent(PowerSupplyEvent):
 
 # --- EvalPSUPowerEvent: Evaluate a PowerSupply's measured power at a particular channel
 class EvalPSUPowerEvent(PowerSupplyEvent):
+
+    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # Any field without a corresponding field_title will default to the field name
+    power_low_title     : str = "Lower Bound (W)"
+    power_high_title    : str = "Upper Bound (W)"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict = {}):

@@ -14,7 +14,7 @@ class DeviceConfig(ABC):
     display_name_title: str = "Display Name"
     
     # *_options = Options for field to provide in a dropdown menu
-    # Any field without a corresponding field_options will default to a text box
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod

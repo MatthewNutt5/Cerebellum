@@ -40,6 +40,8 @@ QoL Features ==========
             respectively
     - Special cases
         - Any field named "com" will use pyserial to grab all available COM ports
+- Add *_info string field for procedural GUI
+    - Will show an info icon that will display the string when hovered over
 - Persistence of GUI state
 - Test preferences
     - Verbosity level, runtime error behavior, log to file, save test results to
