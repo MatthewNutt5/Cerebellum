@@ -27,7 +27,7 @@ import importlib
 
 class PowerSupplyConfig(DeviceConfig):
     
-    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
 
     # *_options = Options for field to provide in a dropdown menu

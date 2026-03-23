@@ -85,5 +85,5 @@ class EnvironmentConfig:
                 constructor = getattr(module, config_class_name)
                 self.device_config_list.append(constructor(vars_dict=config))
             except Exception as e:
-                logging.warning(f"Generated DeviceConfig module/constructor name (Cerebellum.Device.{module_name}.{config_class_name}) is invalid: {e}")
+                logging.warning(f"DeviceConfig constructor Cerebellum.Device.{module_name}.{config_class_name}() failed: {e}")
                 logging.warning("Skipping config...")

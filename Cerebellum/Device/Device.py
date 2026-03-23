@@ -9,7 +9,7 @@ import importlib
 
 class DeviceConfig(ABC):
 
-    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
     display_name_title: str = "Display Name"
     
@@ -64,4 +64,4 @@ def create_device(config: DeviceConfig) -> Device:
         constructor = getattr(module, module_name)
         return constructor(config)
     except Exception as e:
-        raise TypeError(f"Generated Device module/constructor name (Cerebellum.Device.{module_name}.{module_name}) is invalid: {e}")
+        raise RuntimeError(f"Device constructor Cerebellum.Device.{module_name}.{module_name}() failed: {e}")

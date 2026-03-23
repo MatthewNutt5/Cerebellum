@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.INFO)
 
 class CAENPowerSupplyConfig(PowerSupplyConfig):
 
-    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
     system_type_title   = "System Type"
     link_type_title     = "Link Type"
@@ -90,10 +90,10 @@ class CAENPowerSupply(PowerSupply):
             all_slots = self.device.get_crate_map() # Also does some initialization
             self.board = all_slots[self.config.board_slot]
             if (self.board is None):
-                raise IndexError(f"Invalid boardSlot from CAEN HV config ({self.config.board_slot}). Available choices: {[board.slot for board in all_slots if board is not None]}")
+                raise IndexError(f"Invalid board_slot from CAEN HV config ({self.config.board_slot}). Available choices: {[board.slot for board in all_slots if board is not None]}")
             logging.info(f"Opened CAENPowerSupply at socket ({self.config.ip}).")
             logging.info(self.get_id())
-        except caenhvwrapper.Error as e:
+        except Exception as e:
             raise RuntimeError(f"Failed to open CAENPowerSupply at socket ({self.config.ip}): {e}")
 
     # Attempt to close any open connections when deallocated

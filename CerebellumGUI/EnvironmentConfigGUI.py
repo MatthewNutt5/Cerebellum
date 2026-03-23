@@ -12,7 +12,7 @@ from Cerebellum.Device.Device import DeviceConfig
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel, QPushButton,
                                QScrollArea, QFileDialog, QMessageBox, QGroupBox,
-                               QSpinBox, QDoubleSpinBox, QLineEdit, QComboBox)
+                               QSpinBox, QDoubleSpinBox, QLineEdit, QComboBox, QBoxLayout)
 from PySide6.QtCore import Qt
 
 import pkgutil, importlib
@@ -25,7 +25,7 @@ class DeviceConfigWidget(QGroupBox):
     def __init__(self, device_config: (DeviceConfig | None) = None, parent=None):
 
         super().__init__("Device Config", parent)
-        self.layout = QVBoxLayout(self)
+        self.main_layout = QVBoxLayout(self)
 
         # Find all modules in Device that can be constructed
         modules: list[str] = []
@@ -43,7 +43,11 @@ class DeviceConfigWidget(QGroupBox):
         self.device_class_edit = QComboBox()
         self.device_class_edit.setEditable(False)
         self.device_class_edit.addItems(modules)
-        self.layout.addWidget(self.device_class_edit)
+
+        # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
+        self.device_class_edit.wheelEvent = (lambda event: event.ignore())
+
+        self.main_layout.addWidget(self.device_class_edit)
 
         # Init device selection to config class if given, otherwise default to first in modules
         if device_config:
@@ -127,11 +131,11 @@ class DeviceConfigWidget(QGroupBox):
 
         # Delete the widgets (label + edit) of the current fields
         for field_widget in self.field_widgets:
-            self.layout.removeWidget(field_widget)
+            self.main_layout.removeWidget(field_widget)
             field_widget.deleteLater()
 
         # Remove the remove button from the layout
-        self.layout.removeWidget(self.remove_button)
+        self.main_layout.removeWidget(self.remove_button)
 
         # Clear out the dict of edits and the list of widgets
         self.field_edits.clear()
@@ -163,12 +167,15 @@ class DeviceConfigWidget(QGroupBox):
                 field_edit = QLineEdit()
                 field_edit.setText(str(field_value))
                 field_edit.setMaximumWidth(200)
+            
+            # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
+            field_edit.wheelEvent = (lambda event: event.ignore())
                 
             # Special case
             # If a field is called "com", overwrite the widget with a ComboBox that retrieves all COM ports of the computer
             if (field_name == "com"):
                 field_edit = QComboBox()
-                field_edit.setEditable(False)
+                field_edit.setEditable(True)
                 field_edit.addItems([port.name for port in serial.tools.list_ports.comports()])
                 field_edit.setCurrentText(str(field_value)) # Might not work?
                 field_edit.setMaximumWidth(200)
@@ -185,7 +192,7 @@ class DeviceConfigWidget(QGroupBox):
             self.field_edits[field_name] = field_edit
 
         # Add the remove button back to the layout
-        self.layout.addWidget(self.remove_button)
+        self.main_layout.addWidget(self.remove_button)
 
 
 
@@ -194,7 +201,7 @@ class DeviceConfigWidget(QGroupBox):
         label = QLabel(label_text)
         h_layout.addWidget(label)
         h_layout.addWidget(edit)
-        self.layout.addLayout(h_layout)
+        self.main_layout.addLayout(h_layout)
         self.field_widgets.append(label)
         self.field_widgets.append(edit)
 
@@ -225,7 +232,7 @@ class EnvironmentConfigGUI(QWidget):
         self.device_scroll_area.setWidgetResizable(True)
         self.device_container = QWidget()
         self.device_layout = QVBoxLayout(self.device_container)
-        self.device_layout.setAlignment(Qt.AlignTop)
+        self.device_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.device_scroll_area.setWidget(self.device_container)
 
         self.main_layout.addWidget(QLabel("Device Configurations:"))

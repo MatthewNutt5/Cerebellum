@@ -19,7 +19,7 @@ SCPI_WRITE_DELAY = 0.1
 
 class SCPIPowerSupplyConfig(PowerSupplyConfig):
 
-    # *_title = String to show as field title in GUI (e.g. Display Name: _____)
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
     protocol_title      = "Protocol"
     ip_title            = "IP Address"
@@ -64,13 +64,13 @@ class SCPIPowerSupply(PowerSupply):
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
                 logging.info(f"Opened SCPIPowerSupply at serial port ({self.config.com}).")
-            except serial.SerialException as e:
+            except Exception as e:
                 raise RuntimeError(f"Failed to open SCPIPowerSupply at serial port ({self.config.com}): {e}")
         elif (self.config.protocol == "IP"):
             try:
                 self.socket = socketscpi.SocketInstrument(self.config.ip)
                 logging.info(f"Opened SCPIPowerSupply at IP socket ({self.config.ip}).")
-            except socketscpi.SockInstError as e:
+            except Exception as e:
                 raise RuntimeError(f"Failed to open SCPIPowerSupply at IP socket ({self.config.ip}): {e}")
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
