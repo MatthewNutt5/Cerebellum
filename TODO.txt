@@ -6,6 +6,11 @@ Fixes/Refactors ==========
     - Custom implementations of devices, power supplies, and events
 - Move some imports into __init__.py to help simplify?
 - Combine the three EvalPSUEvents into one Eval event that chooses one (V/I/P)?
+- See if there's a smarter way to handle importlib (e.g. accessing
+    already-imported modules instead of importing them anew)
+- Separate get_config and load/save_json in GUI
+    - This way, JSONs aren't required as an intermediary when running a test - 
+        the main GUI can just get the configs directly
 
 Key Features ==========
 
