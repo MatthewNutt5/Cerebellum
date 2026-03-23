@@ -29,7 +29,6 @@ class PowerSupplyConfig(DeviceConfig):
     
     # *_title = String to show as field title in GUI (e.g. Display Name: _____)
     # Any field without a corresponding field_title will default to the field name
-    display_name_title: str = "Display Name"
 
     # *_options = Options for field to provide in a dropdown menu
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type

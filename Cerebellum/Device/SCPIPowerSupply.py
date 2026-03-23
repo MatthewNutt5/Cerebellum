@@ -21,7 +21,6 @@ class SCPIPowerSupplyConfig(PowerSupplyConfig):
 
     # *_title = String to show as field title in GUI (e.g. Display Name: _____)
     # Any field without a corresponding field_title will default to the field name
-    display_name_title  = "Display Name"
     protocol_title      = "Protocol"
     ip_title            = "IP Address"
     com_title           = "COM Port"

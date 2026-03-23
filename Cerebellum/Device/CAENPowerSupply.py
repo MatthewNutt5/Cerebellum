@@ -16,19 +16,18 @@ ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(ABS_DIR)                # Device submodule
 sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
 sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
-from Cerebellum.Device.PowerSupply import PowerSupply
+from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
-from caen_libs import caenhvwrapper
+#from caen_libs import caenhvwrapper
 import logging
 logging.basicConfig(level=logging.INFO)
 
 
 
-class CAENPowerSupplyConfig:
+class CAENPowerSupplyConfig(PowerSupplyConfig):
 
     # *_title = String to show as field title in GUI (e.g. Display Name: _____)
     # Any field without a corresponding field_title will default to the field name
-    display_name_title  = "Display Name"
     system_type_title   = "System Type"
     link_type_title     = "Link Type"
     ip_title            = "IP Address"

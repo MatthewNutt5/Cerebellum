@@ -17,8 +17,8 @@ ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(ABS_DIR)                # Cerebellum modules
 sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
 sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
-from Cerebellum.Event import *
-EVT_MOD = sys.modules["Cerebellum.Event"]
+import Cerebellum.Event
+from Cerebellum.Event import Event
 
 from json import dump, load
 import logging
@@ -79,7 +79,7 @@ class TestConfig:
 
             # From the event class_name, import its constructor from the Event module
             try:
-                constructor = getattr(EVT_MOD, event_class_name)
+                constructor = getattr(Cerebellum.Event, event_class_name)
                 self.event_list.append(constructor(vars_dict=event))
             except Exception as e:
                 logging.warning(f"Invalid Event class_name ({event_class_name}) found during JSON read: {e}")
