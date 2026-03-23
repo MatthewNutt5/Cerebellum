@@ -9,6 +9,7 @@ Fixes/Refactors ==========
 
 Key Features ==========
 
+- Port procedural GUI over to TestConfigGUI
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?
@@ -27,29 +28,12 @@ Key Features ==========
 
 QoL Features ==========
 
-- Procedural GUI
-    - On startup, the GUI reads each class implementing the Device interface
-        (ignoring PowerSupply) and offers a dropdown menu of options for Configs
-    - The config field types are already provided by the corresponding Config,
-        and it can additionally specify a selection of options - the GUI uses
-        this for its display
-    - Fields can also specify a name to display, e.g. ip --> "IP Address"
-    - In both of these cases, the spec will exist in a predetermined name as a
-        class attribute, e.g. self.field --> field_options and field_title
-        - If the name is not found, default to an open box and the field name,
-            respectively
-    - Special cases
-        - Any field named "com" will use pyserial to grab all available COM ports
-- Add *_info string field for procedural GUI
-    - Will show an info icon that will display the string when hovered over
+- Add device indices to EnvironmentConfig (e.g. instead of DeviceConfig, it 
+    says Device #0, etc.)
 - Persistence of GUI state
 - Test preferences
     - Verbosity level, runtime error behavior, log to file, save test results to
         file, 
-- Build everything into a single .exe we can "release"?
-    - Rename CerebellumGUI.py back to MainGUI.py and move it into the
-        CerebellumGUI module, then use pyinstaller to compile everything
-        starting from MainGUI.py
 - Pause on exception in run_test instead of immediate test abort
     - Could have an (Ignore) / Pause / Abort option in preferences
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)

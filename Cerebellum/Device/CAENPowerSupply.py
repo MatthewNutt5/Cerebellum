@@ -18,7 +18,7 @@ sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
 sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
-#from caen_libs import caenhvwrapper
+from caen_libs import caenhvwrapper
 import logging
 logging.basicConfig(level=logging.INFO)
 

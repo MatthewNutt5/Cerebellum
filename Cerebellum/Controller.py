@@ -34,11 +34,21 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     # Attempt to run the regular program sequence
     try:
         
-        # Before anything, check that each DeviceEvent will refer to the correct device
+        # Before anything, check that each DeviceEvent will refer to a device that exists and matches the type (e.g. PowerSupplyEvent)
         logging.info("Verifying event list ==========")
-        for event in settings.event_list:
+        for idx, event in enumerate(settings.event_list):
             if isinstance(event, DeviceEvent):
-                event.verify(config.device_config_list[event.device_idx])
+
+                try:
+                    _ = config.device_config_list[event.device_idx]
+                except IndexError as e:
+                    raise IndexError(f"Event #{idx} failed to verify: device_idx ({event.device_idx}) is out of range of the device list.")
+                
+                try:
+                    event.verify(config.device_config_list[event.device_idx])
+                except Exception as e:
+                    raise RuntimeError(f"Event #{idx} failed to verify: {e}")
+                
         logging.info("All events verified successfully.")
 
         # Initialize all devices

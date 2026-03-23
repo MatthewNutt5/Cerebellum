@@ -1,72 +1,87 @@
 # Always make sure that Cerebellum and its submodules are on the import path
 import sys, os
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
-
-from Cerebellum.EnvironmentConfig import EnvironmentConfig, PSUConfig
-from Cerebellum.TestConfig import TestConfig, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(f"{ABS_DIR}/../")                   # Cerebellum parent directory
+sys.path.append(f"{ABS_DIR}/../Cerebellum/")        # Cerebellum modules
+sys.path.append(f"{ABS_DIR}/../Cerebellum/Device/") # Device submodule
+from Cerebellum.EnvironmentConfig import EnvironmentConfig
+from Cerebellum.TestConfig import TestConfig
+from Cerebellum.Event import *
 from Cerebellum.Controller import run_test
+from Cerebellum.Device.SCPIPowerSupply import SCPIPowerSupplyConfig
+from Cerebellum.Device.CAENPowerSupply import CAENPowerSupplyConfig
+
 
 read_json = False
 CAEN = False
 
-config = EnvironmentConfig()
+
+
+env_config = EnvironmentConfig()
+
 if read_json:
-    config.read_json("config.json")
+    env_config.read_json("env_config.json")
 else:
-    configLV = PSUConfig()
-    configLV.display_name = "Low Voltage Power Supply"
-    configLV.interface = "SCPI"
-    # configLV.protocol = "IP"
-    # configLV.ip = "192.168.0.40"
-    configLV.protocol = "Serial"
-    configLV.com = "COM7"
-    config.PSUConfigList.append(configLV)
+    config_lv = SCPIPowerSupplyConfig()
+    config_lv.display_name = "Low Voltage Power Supply"
+    config_lv.protocol = "IP"
+    config_lv.ip = "192.168.0.40"
+    config_lv.com = "COM7"
+    env_config.device_config_list.append(config_lv)
 
     if CAEN:
-        configHV = PSUConfig()
-        configHV.display_name = "High Voltage Power Supply"
-        configHV.interface = "Custom"
-        configHV.implementation = "CAENPowerSupply"
-        configHV.ip = "192.168.0.1"
-        configHV.customConfig = {"systemType" : "SY4527", "linkType" : "TCPIP", "username" : "", "password" : "", "boardSlot" : "0"}
-        config.PSUConfigList.append(configHV)
+        config_hv = CAENPowerSupplyConfig()
+        config_hv.display_name = "High Voltage Power Supply"
+        config_hv.ip = "192.168.0.1"
+        config_hv.username = ""
+        config_hv.password = ""
+        config_hv.board_slot = 0
+        env_config.device_config_list.append(config_hv)
 
-    config.write_json("config.json")
+    env_config.write_json("env_config.json")
 
-settings = TestConfig()
+
+
+test_config = TestConfig()
+
 if read_json:
-    settings.read_json("settings.json")
+    test_config.read_json("test_config.json")
 else:
-    setEvent1 = SetPSUEvent()
-    setEvent1.PSUidx = 0 # The LV was the first PSU added, so it's at index 0
-    setEvent1.channel = 0
-    setEvent1.voltage = 9.0
-    setEvent1.current = 6.0
-    settings.PSUSettingsList.append(setEvent1)
+    test_config.event_list.append(WaitEvent())
+
+    event = SetPSUEvent()
+    event.comment = "Power the RB"
+    event.device_idx = 0 # The LV was the first PSU added, so it's at index 0
+    event.channel = 0
+    event.voltage = 9.0
+    event.current = 6.0
+    test_config.event_list.append(event)
+
+    event = SleepEvent()
+    event.comment = "Wait for 3 seconds"
+    test_config.event_list.append(event)
 
     if CAEN:
-        setEvent2 = SetPSUEvent()
-        setEvent2.PSUidx = 1 # The HV was the second PSU added, so it's at index 1
-        setEvent2.channel = 0
-        setEvent2.voltage = 2.0
-        setEvent2.current = 0.5
-        settings.PSUSettingsList.append(setEvent2)
+        event = SetPSUEvent()
+        event.device_idx = 1 # The HV was the second PSU added, so it's at index 1
+        event.channel = 0
+        event.voltage = 2.0
+        event.current = 0.5
+        test_config.event_list.append(event)
 
-    eval_event1 = EvalPSUPowerEvent()
-    eval_event1.PSUidx = 0
-    eval_event1.channel = 0
-    eval_event1.PowerLow = 3.5
-    eval_event1.PowerHigh = 4.0
-    
-    settings.event_list.append(eval_event1)
+    event = EvalPSUPowerEvent()
+    event.device_idx = 0
+    event.channel = 0
+    event.power_low = 3.5
+    event.power_high = 4.0
+    test_config.event_list.append(event)
 
     if CAEN:
-        eval_event2 = EvalPSUCurrentEvent()
-        eval_event2.PSUidx = 0
-        eval_event2.channel = 0
-        settings.event_list.append(eval_event2)
+        event = EvalPSUCurrentEvent()
+        event.device_idx = 0
+        event.channel = 0
+        test_config.event_list.append(event)
 
-    settings.write_json("settings.json")
+    test_config.write_json("test_config.json")
 
-run_test(config, settings)
+run_test(env_config, test_config)

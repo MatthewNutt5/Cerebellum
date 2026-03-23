@@ -37,7 +37,7 @@ class SCPIPowerSupplyConfig(PowerSupplyConfig):
             vars(self).update(vars_dict) # Install input into __dict__
         else:
             self.display_name   : str   = "SCPI Power Supply"       # Display name of the power supply
-            self.protocol       : str   = ""                        # Communication protocol (IP / Serial)
+            self.protocol       : str   = "IP"                      # Communication protocol (IP / Serial)
             self.ip             : str   = ""                        # IP address
             self.com            : str   = ""                        # COM port (e.g. /dev/ttyACM0, COM1)
             self.baudrate       : int   = 115200                    # COM baudrate
