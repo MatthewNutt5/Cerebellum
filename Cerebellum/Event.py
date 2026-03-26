@@ -12,6 +12,7 @@ from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from abc import ABC, abstractmethod
+from typing import Any
 import logging, time, subprocess
 logging.basicConfig(level=logging.INFO)
 
@@ -33,7 +34,7 @@ class Event(ABC):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -58,7 +59,7 @@ class DeviceEvent(Event):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -89,7 +90,7 @@ class PowerSupplyEvent(DeviceEvent):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -123,7 +124,7 @@ class SleepEvent(Event):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -141,7 +142,7 @@ class SleepEvent(Event):
 class WaitEvent(Event):
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -164,7 +165,7 @@ class CommandEvent(Event):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -200,7 +201,7 @@ class SetPSUEvent(PowerSupplyEvent):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -268,7 +269,7 @@ class EvalPSUVoltageEvent(PowerSupplyEvent):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -303,7 +304,7 @@ class EvalPSUCurrentEvent(PowerSupplyEvent):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
@@ -338,7 +339,7 @@ class EvalPSUPowerEvent(PowerSupplyEvent):
     # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:

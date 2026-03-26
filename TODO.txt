@@ -5,7 +5,6 @@ Fixes/Refactors ==========
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
 - Move some imports into __init__.py to help simplify?
-- Combine the three EvalPSUEvents into one Eval event that chooses one (V/I/P)?
 - See if there's a smarter way to handle importlib (e.g. accessing
     already-imported modules instead of importing them anew)
 - Separate get_config and load/save_json in GUI
@@ -33,8 +32,13 @@ Key Features ==========
 
 QoL Features ==========
 
+- Copy over fields when changing device/event types if the field has the same name
 - Add device indices to EnvironmentConfig (e.g. instead of DeviceConfig, it 
     says Device #0, etc.)
+- Allow for moving devices and events up/down
+- Add event device_idx remapper to EventConfigGUI
+    - What if someone reorders their devices and breaks the device_idx-es?
+        What if they get a TestConfig from someone else with a different setup?
 - Persistence of GUI state
 - Test preferences
     - Verbosity level, runtime error behavior, log to file, save test results to
@@ -44,3 +48,4 @@ QoL Features ==========
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - Add log-to-file
 - Adjust log formatting
+- Fix QComboBox flickering

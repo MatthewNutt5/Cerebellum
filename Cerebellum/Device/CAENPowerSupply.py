@@ -19,6 +19,7 @@ sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from caen_libs import caenhvwrapper
+from typing import Any
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -48,7 +49,7 @@ class CAENPowerSupplyConfig(PowerSupplyConfig):
     ]
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:

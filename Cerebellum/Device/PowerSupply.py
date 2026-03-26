@@ -21,6 +21,7 @@ sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.Device import Device, DeviceConfig
 
 from abc import ABC, abstractmethod
+from typing import Any
 import importlib
 
 
@@ -35,7 +36,7 @@ class PowerSupplyConfig(DeviceConfig):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:

@@ -1,10 +1,12 @@
 # Always make sure that Cerebellum and its submodules are on the import path
 import sys, os
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
-sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../Cerebellum/")
-
-from Cerebellum.EnvironmentConfig import EnvironmentConfig
-from Cerebellum.TestConfig import TestConfig, Event, SetPSUEvent, EvalPSUVoltageEvent, EvalPSUCurrentEvent, EvalPSUPowerEvent
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(ABS_DIR)                            # CerebellumGUI modules
+sys.path.append(f"{ABS_DIR}/../")                   # Cerebellum parent directory
+sys.path.append(f"{ABS_DIR}/../Cerebellum/")        # Cerebellum modules
+sys.path.append(f"{ABS_DIR}/../Cerebellum/Device/") # Device submodule
+from Cerebellum.TestConfig import TestConfig
+from Cerebellum.Event import Event
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QHBoxLayout, QLabel, QLineEdit, QPushButton,

@@ -9,12 +9,13 @@ from Cerebellum.EnvironmentConfig import EnvironmentConfig
 import Cerebellum.Device
 from Cerebellum.Device.Device import DeviceConfig
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                               QHBoxLayout, QLabel, QPushButton,
-                               QScrollArea, QFileDialog, QMessageBox, QGroupBox,
-                               QSpinBox, QDoubleSpinBox, QLineEdit, QComboBox, QBoxLayout)
+from PySide6.QtWidgets import  (QApplication, QMainWindow,
+                                QWidget, QScrollArea, QGroupBox, QVBoxLayout, QHBoxLayout,
+                                QPushButton, QFileDialog, QMessageBox, QLabel,
+                                QComboBox, QCheckBox, QSpinBox, QDoubleSpinBox, QLineEdit)
 from PySide6.QtCore import Qt
 
+from typing import Any
 import pkgutil, importlib
 import serial.tools.list_ports
 
@@ -79,6 +80,8 @@ class DeviceConfigWidget(QGroupBox):
                 field_value = vars(device_config)[field_name]
                 if isinstance(field_edit, QComboBox):
                     field_edit.setCurrentText(str(field_value))
+                elif isinstance(field_edit, QCheckBox):
+                    field_edit.setChecked(bool(field_value))
                 elif isinstance(field_edit, QSpinBox):
                     field_edit.setValue(int(field_value))
                 elif isinstance(field_edit, QDoubleSpinBox):
@@ -97,25 +100,24 @@ class DeviceConfigWidget(QGroupBox):
         blank_config = constructor()
 
         # Make a dict for the config based on the current values from edits
-        config_dict: dict[str, int | float | str] = {}
+        config_dict: dict[str, Any] = {}
         for field_name, field_edit in self.field_edits.items():
             
             # Get the field value according to the edit type
             if isinstance(field_edit, QComboBox):
                 field_value = field_edit.currentText()
+            elif isinstance(field_edit, QCheckBox):
+                field_value = field_edit.isChecked()
             elif isinstance(field_edit, (QSpinBox | QDoubleSpinBox)):
                 field_value = field_edit.value()
             elif isinstance(field_edit, QLineEdit):
                 field_value = field_edit.text()
+            else:
+                field_value = 0
             
             # Convert the field value according to the type in the blank_config
             field_type = type(getattr(blank_config, field_name))
-            if field_type == int:
-                config_dict[field_name] = int(field_value)
-            elif field_type == float:
-                config_dict[field_name] = float(field_value)
-            elif field_type == str:
-                config_dict[field_name] = str(field_value)
+            config_dict[field_name] = field_type(field_value)
             
         return constructor(vars_dict=config_dict)
 
@@ -150,35 +152,38 @@ class DeviceConfigWidget(QGroupBox):
             if (field_name + "_options") in dir(blank_config.__class__):
                 field_edit = QComboBox()
                 field_edit.setEditable(False)
-                field_edit.addItems([str(item) for item in getattr(blank_config, field_name + "_options")])
+                items = [str(item) for item in getattr(blank_config, field_name + "_options")]
+                field_edit.addItems(items)
+                field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
                 field_edit.setCurrentText(str(field_value))
-                field_edit.setMaximumWidth(200)
+            # Bool has to be checked before int because it is a child of int
+            elif isinstance(field_value, bool):
+                field_edit = QCheckBox()
+                field_edit.setChecked(bool(field_value))
             elif isinstance(field_value, int):
                 field_edit = QSpinBox()
                 field_edit.setRange(-2147483648, 2147483647)
                 field_edit.setValue(int(field_value))
-                field_edit.setMaximumWidth(100)
             elif isinstance(field_value, float):
                 field_edit = QDoubleSpinBox()
                 field_edit.setRange(float("-inf"), float("inf"))
                 field_edit.setValue(float(field_value))
-                field_edit.setMaximumWidth(100)
             else:
                 field_edit = QLineEdit()
                 field_edit.setText(str(field_value))
-                field_edit.setMaximumWidth(200)
-            
-            # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
-            field_edit.wheelEvent = (lambda event: event.ignore())
                 
             # Special case
             # If a field is called "com", overwrite the widget with a ComboBox that retrieves all COM ports of the computer
             if (field_name == "com"):
                 field_edit = QComboBox()
-                field_edit.setEditable(True)
-                field_edit.addItems([port.name for port in serial.tools.list_ports.comports()])
-                field_edit.setCurrentText(str(field_value)) # Might not work?
-                field_edit.setMaximumWidth(200)
+                field_edit.setEditable(True) # Set editable so that the field won't ignore a loaded value
+                items = [port.name for port in serial.tools.list_ports.comports()]
+                field_edit.addItems(items)
+                field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
+                field_edit.setCurrentText(str(field_value))
+
+            # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
+            field_edit.wheelEvent = (lambda event: event.ignore())
 
             # Update the layout with the new field
             # If the field has a corresponding _title class attribute, use that as the label
@@ -201,6 +206,8 @@ class DeviceConfigWidget(QGroupBox):
         label = QLabel(label_text)
         h_layout.addWidget(label)
         h_layout.addWidget(edit)
+        h_layout.setAlignment(label, Qt.AlignmentFlag.AlignLeft)
+        h_layout.setAlignment(edit, Qt.AlignmentFlag.AlignLeft)
         self.main_layout.addLayout(h_layout)
         self.field_widgets.append(label)
         self.field_widgets.append(edit)

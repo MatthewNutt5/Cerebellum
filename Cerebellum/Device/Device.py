@@ -3,6 +3,7 @@ Placeholder
 """
 
 from abc import ABC, abstractmethod
+from typing import Any
 import importlib
 
 
@@ -18,7 +19,7 @@ class DeviceConfig(ABC):
 
     # Either init with default values or init with input fields (read from JSON)
     @abstractmethod
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:

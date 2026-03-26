@@ -10,6 +10,7 @@ sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
 sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
+from typing import Any
 import serial, socketscpi, time, re, logging
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +33,7 @@ class SCPIPowerSupplyConfig(PowerSupplyConfig):
     baudrate_options    = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
 
     # Either init with default values or init with input fields (read from JSON)
-    def __init__(self, vars_dict: dict = {}):
+    def __init__(self, vars_dict: dict[str, Any] = {}):
         if vars_dict:
             vars(self).update(vars_dict) # Install input into __dict__
         else:
