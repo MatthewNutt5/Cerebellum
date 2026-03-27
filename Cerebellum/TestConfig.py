@@ -11,18 +11,11 @@ class, which is a helper class used to specify an individual criterion the test
 should evaluate.
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
-sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
 import Cerebellum.Event
 from Cerebellum.Event import Event
 
 from json import dump, load
 import logging
-logging.basicConfig(level=logging.INFO)
 
 
 

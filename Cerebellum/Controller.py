@@ -8,12 +8,6 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
-sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Event import *
@@ -21,7 +15,6 @@ from Cerebellum.Device.Device import Device, DeviceConfig, create_device
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 import logging, signal
-logging.basicConfig(level=logging.INFO)
 
 
 

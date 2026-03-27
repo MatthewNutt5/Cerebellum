@@ -2,19 +2,12 @@
 Placeholder
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum parent directory
-sys.path.append(f"{ABS_DIR}/Device/")   # Device submodule
 from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from abc import ABC, abstractmethod
 from typing import Any
 import logging, time, subprocess
-logging.basicConfig(level=logging.INFO)
 
 
 

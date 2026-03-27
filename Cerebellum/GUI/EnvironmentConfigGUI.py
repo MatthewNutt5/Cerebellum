@@ -1,10 +1,7 @@
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                            # CerebellumGUI modules
-sys.path.append(f"{ABS_DIR}/../")                   # Cerebellum parent directory
-sys.path.append(f"{ABS_DIR}/../Cerebellum/")        # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../Cerebellum/Device/") # Device submodule
+"""
+Placeholder
+"""
+
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 import Cerebellum.Device
 from Cerebellum.Device.Device import DeviceConfig
@@ -16,45 +13,46 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import pkgutil, importlib
+import pkgutil, importlib, sys, os
 import serial.tools.list_ports
+
+
+
+# Find all modules in Device that have a valid DeviceConfig constructor
+# Create a dict of [module_name, config constructor]
+DEVICE_CONFIGS: dict[str, Any] = {}
+for _, full_name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__, Cerebellum.Device.__name__ + "."):
+    try:
+        module = importlib.import_module(full_name)
+        module_name = full_name.split(".")[-1]
+        constructor = getattr(module, module_name + "Config")
+        _ = constructor()
+        DEVICE_CONFIGS[module_name] = constructor
+    except:
+        pass
 
 
 
 class DeviceConfigWidget(QGroupBox):
 
-    def __init__(self, device_config: (DeviceConfig | None) = None, parent=None):
+    def __init__(self, device_config: (DeviceConfig | None) = None, parent = None):
 
         super().__init__("Device Config", parent)
         self.main_layout = QVBoxLayout(self)
 
-        # Find all modules in Device that can be constructed
-        modules: list[str] = []
-        for _, full_name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__, Cerebellum.Device.__name__ + "."):
-            try:
-                module_name = full_name.split(".")[-1]
-                module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-                constructor = getattr(module, module_name + "Config")
-                _ = constructor()
-                modules.append(module_name)
-            except:
-                pass
-
-        # Use these modules/constructors as choices for the Device class
+        # Use available modules/constructors as choices for the Device class
         self.device_class_edit = QComboBox()
         self.device_class_edit.setEditable(False)
-        self.device_class_edit.addItems(modules)
+        self.device_class_edit.addItems(list(DEVICE_CONFIGS.keys()))
 
         # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
         self.device_class_edit.wheelEvent = (lambda event: event.ignore())
 
         self.main_layout.addWidget(self.device_class_edit)
 
-        # Init device selection to config class if given, otherwise default to first in modules
+        # Init device selection to config class if given
         if device_config:
             self.device_class_edit.setCurrentText(device_config.__class__.__name__.replace("Config", ""))
-        else:
-            self.device_class_edit.setCurrentText(modules[0])
 
         # Store all field edits in a dict to retrieve field data
         # Store all field widgets (label + edit) in a list that can be cleared
@@ -91,12 +89,11 @@ class DeviceConfigWidget(QGroupBox):
 
         
 
-    def get_device_config(self):
+    def get_device_config(self) -> DeviceConfig:
         
         # First, retrieve a DeviceConfig instance from the current selected device class
         module_name = self.device_class_edit.currentText()
-        module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-        constructor = getattr(module, module_name + "Config")
+        constructor = DEVICE_CONFIGS[module_name]
         blank_config = constructor()
 
         # Make a dict for the config based on the current values from edits
@@ -123,12 +120,11 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
-    def _update_device_select(self):
+    def _update_device_select(self) -> None:
 
         # First, retrieve a DeviceConfig instance from the current selected device class
         module_name = self.device_class_edit.currentText()
-        module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-        constructor = getattr(module, module_name + "Config")
+        constructor = constructor = DEVICE_CONFIGS[module_name]
         blank_config = constructor()
 
         # Delete the widgets (label + edit) of the current fields
@@ -201,7 +197,7 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
-    def _add_field(self, label_text, edit):
+    def _add_field(self, label_text, edit) -> None:
         h_layout = QHBoxLayout()
         label = QLabel(label_text)
         h_layout.addWidget(label)
@@ -254,7 +250,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-    def _add_device_widget(self, device_config: (DeviceConfig | None) = None):
+    def _add_device_widget(self, device_config: (DeviceConfig | None) = None) -> None:
         widget = DeviceConfigWidget(device_config)
         self.device_layout.addWidget(widget)
         self.device_widgets.append(widget)
@@ -262,14 +258,14 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-    def _remove_device_widget(self, widget):
+    def _remove_device_widget(self, widget) -> None:
         self.device_layout.removeWidget(widget)
         widget.deleteLater()
         self.device_widgets.remove(widget)
 
 
 
-    def _load_json(self):
+    def _load_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
@@ -292,7 +288,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-    def _save_json(self):
+    def _save_json(self) -> None:
         filepath, _ = QFileDialog.getSaveFileName(self, "Save Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
@@ -310,7 +306,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-if __name__ == "__main__":
+def envGUI():
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Environment Config Editor")

@@ -12,17 +12,10 @@ object based on the input PSUConfig. For example, a config with an SCPI
 interface will be constructed as an SCPIPowerSupply.
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Device submodule
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.Device import Device, DeviceConfig
 
 from abc import ABC, abstractmethod
 from typing import Any
-import importlib
 
 
 

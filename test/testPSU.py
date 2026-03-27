@@ -9,7 +9,7 @@ from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Event import *
 from Cerebellum.Controller import run_test
 from Cerebellum.Device.SCPIPowerSupply import SCPIPowerSupplyConfig
-from Cerebellum.Device.CAENPowerSupply import CAENPowerSupplyConfig
+#from Cerebellum.Device.CAENPowerSupply import CAENPowerSupplyConfig
 
 
 read_json = False

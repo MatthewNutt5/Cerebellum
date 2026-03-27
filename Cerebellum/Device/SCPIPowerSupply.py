@@ -2,17 +2,10 @@
 Placeholder
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Device submodule
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from typing import Any
 import serial, socketscpi, time, re, logging
-logging.basicConfig(level=logging.INFO)
 
 SCPI_WRITE_DELAY = 0.1
 

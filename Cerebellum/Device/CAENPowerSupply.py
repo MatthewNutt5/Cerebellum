@@ -10,18 +10,11 @@ PSUs. Each "slot" houses a "board", which has its own "channels" that power
 can be delivered from.
 """
 
-# Always make sure that Cerebellum and its submodules are on the import path
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ABS_DIR)                # Device submodule
-sys.path.append(f"{ABS_DIR}/../")       # Cerebellum modules
-sys.path.append(f"{ABS_DIR}/../../")    # Cerebellum parent directory
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from caen_libs import caenhvwrapper
 from typing import Any
 import logging
-logging.basicConfig(level=logging.INFO)
 
 
 

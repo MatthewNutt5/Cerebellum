@@ -2,9 +2,11 @@
 Placeholder
 """
 
+import Cerebellum.Device
+
 from abc import ABC, abstractmethod
 from typing import Any
-import importlib
+import pkgutil, importlib
 
 
 
@@ -50,19 +52,29 @@ class Device(ABC):
 
 
 
-def create_device(config: DeviceConfig) -> Device:
+# Find all modules in Device and get their Device constructors
+# Create a dict of [module_name, device constructor]
+# This will include invalid constructors (e.g. PowerSupply())
+# Do this AFTER defining Device and DeviceConfig so the other modules will work
+DEVICES: dict[str, Any] = {}
+for _, full_name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__, Cerebellum.Device.__name__ + "."):
+    try:
+        module = importlib.import_module(full_name)
+        module_name = full_name.split(".")[-1]
+        constructor = getattr(module, module_name)
+        DEVICES[module_name] = constructor
+    except:
+        pass
 
-    # From the config class_name, produce the module/instance name
-    # E.g. config_class_name = "SCPIPowerSupplyConfig" --> module_name = "SCPIPowerSupply"
-    config_class_name = config.__class__.__name__
-    module_name = config_class_name.replace("Config", "")
-    if (module_name == config_class_name):
-        raise TypeError(f"Config class_name ({config_class_name}) does not have \"Config\" in its name; cannot produce module name.")
+
+
+def create_device(config: DeviceConfig) -> Device:
     
     # Import the instance constructor from the module
     try:
-        module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-        constructor = getattr(module, module_name)
+        full_name = config.__module__
+        module_name = full_name.split(".")[-1]
+        constructor = DEVICES[module_name]
         return constructor(config)
     except Exception as e:
-        raise RuntimeError(f"Device constructor Cerebellum.Device.{module_name}.{module_name}() failed: {e}")
+        raise RuntimeError(f"Device constructor {full_name}.{module_name}() failed: {e}")
