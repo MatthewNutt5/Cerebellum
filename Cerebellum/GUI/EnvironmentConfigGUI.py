@@ -120,6 +120,19 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
+    def _add_field(self, label_text, edit) -> None:
+        h_layout = QHBoxLayout()
+        label = QLabel(label_text)
+        h_layout.addWidget(label)
+        h_layout.addWidget(edit)
+        h_layout.setAlignment(label, Qt.AlignmentFlag.AlignLeft)
+        h_layout.setAlignment(edit, Qt.AlignmentFlag.AlignLeft)
+        self.main_layout.addLayout(h_layout)
+        self.field_widgets.append(label)
+        self.field_widgets.append(edit)
+
+
+
     def _update_device_select(self) -> None:
 
         # First, retrieve a DeviceConfig instance from the current selected device class
@@ -197,19 +210,6 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
-    def _add_field(self, label_text, edit) -> None:
-        h_layout = QHBoxLayout()
-        label = QLabel(label_text)
-        h_layout.addWidget(label)
-        h_layout.addWidget(edit)
-        h_layout.setAlignment(label, Qt.AlignmentFlag.AlignLeft)
-        h_layout.setAlignment(edit, Qt.AlignmentFlag.AlignLeft)
-        self.main_layout.addLayout(h_layout)
-        self.field_widgets.append(label)
-        self.field_widgets.append(edit)
-
-
-
 class EnvironmentConfigGUI(QWidget):
 
     def __init__(self):
@@ -249,19 +249,28 @@ class EnvironmentConfigGUI(QWidget):
         self.device_widgets = []
 
 
+    
+    def get_env_config(self) -> EnvironmentConfig:
+        config = EnvironmentConfig()
+        for widget in self.device_widgets:
+            config.device_config_list.append(widget.get_device_config())
+        return config
+
+
 
     def _add_device_widget(self, device_config: (DeviceConfig | None) = None) -> None:
         widget = DeviceConfigWidget(device_config)
         self.device_layout.addWidget(widget)
         self.device_widgets.append(widget)
-        widget.remove_button.clicked.connect(lambda: self._remove_device_widget(widget))
+        widget.remove_button.clicked.connect(lambda: self._remove_device_widget(widget, True))
 
 
 
-    def _remove_device_widget(self, widget) -> None:
+    def _remove_device_widget(self, widget, update) -> None:
         self.device_layout.removeWidget(widget)
         widget.deleteLater()
-        self.device_widgets.remove(widget)
+        if update:
+            self.device_widgets.remove(widget)
 
 
 
@@ -276,7 +285,8 @@ class EnvironmentConfigGUI(QWidget):
 
             # Clear current UI
             for widget in self.device_widgets:
-                self._remove_device_widget(widget)
+                self._remove_device_widget(widget, False)
+            self.device_widgets.clear()
 
             # Populate UI
             for device in config.device_config_list:
@@ -294,12 +304,7 @@ class EnvironmentConfigGUI(QWidget):
             return
 
         try:
-            config = EnvironmentConfig()
-
-            for widget in self.device_widgets:
-                config.device_config_list.append(widget.get_device_config())
-
-            config.write_json(filepath)
+            self.get_env_config().write_json(filepath)
             QMessageBox.information(self, "Success", f"Successfully saved configuration to {os.path.basename(filepath)}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save JSON file:\n{str(e)}")

@@ -4,9 +4,10 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
-- Separate get_config and load/save_json in GUI
-    - This way, JSONs aren't required as an intermediary when running a test - 
-        the main GUI can just get the configs directly
+- Eliminate the use of importlib to allow for building an exe
+    - Instead of importing the module through importlib, import the whole
+        package and iterate over its modules
+    - inspect.getmembers(), with inspect.ismodule()
 
 Key Features ==========
 
