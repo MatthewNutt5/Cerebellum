@@ -10,10 +10,33 @@ This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
 """
 
+import Cerebellum.Device
 from Cerebellum.Device.Device import DeviceConfig
 
+from typing import Any
 from json import dump, load
-import importlib, logging
+import pkgutil, importlib, inspect, logging
+
+# Walk packages of Cerebellum.Device and get all the submodules into the cache
+# Ignore any package that doesn't work
+for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
+    full_name = "Cerebellum.Device." + name
+    try:
+        importlib.import_module(full_name)
+    except:
+        pass
+
+# Find all modules in Device that have a valid DeviceConfig constructor
+# Create a dict of [config class name, config constructor]
+DEVICE_CONFIGS: dict[str, Any] = {}
+for member_name, member in inspect.getmembers(Cerebellum.Device):
+    if inspect.ismodule(member):
+        try:
+            constructor = getattr(member, member_name + "Config")
+            _ = constructor()
+            DEVICE_CONFIGS[member_name + "Config"] = constructor
+        except:
+            pass
 
 
 
@@ -65,18 +88,11 @@ class EnvironmentConfig:
             # Look for config class_name field to inform what sort of Config to construct
             # Also remove class_name from the dict so it doesn't end up in the instance
             config_class_name = config.pop("class_name")
-
-            # From the config class_name, produce the module name
-            # E.g. config_class_name = "SCPIPowerSupplyConfig" --> module_name = "SCPIPowerSupply", and use config_class_name as the constructor
-            module_name = config_class_name.replace("Config", "")
-            if (module_name == config_class_name):
-                raise TypeError(f"Config class_name ({config_class_name}) does not have \"Config\" in its name; cannot produce module name.")
             
-            # Import the config constructor from the module
+            # Use the corresponding constructor from the config_class_name
             try:
-                module = importlib.import_module(f"Cerebellum.Device.{module_name}")
-                constructor = getattr(module, config_class_name)
+                constructor = DEVICE_CONFIGS[config_class_name]
                 self.device_config_list.append(constructor(vars_dict=config))
             except Exception as e:
-                logging.warning(f"DeviceConfig constructor Cerebellum.Device.{module_name}.{config_class_name}() failed: {e}")
+                logging.warning(f"DeviceConfig constructor {config_class_name}() failed: {e}")
                 logging.warning("Skipping config...")

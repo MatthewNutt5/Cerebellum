@@ -13,23 +13,53 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import pkgutil, importlib, sys, os
+from contextlib import contextmanager
+import pkgutil, importlib, inspect, sys, os, logging
 import serial.tools.list_ports
 
-
-
-# Find all modules in Device that have a valid DeviceConfig constructor
-# Create a dict of [module_name, config constructor]
-DEVICE_CONFIGS: dict[str, Any] = {}
-for _, full_name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__, Cerebellum.Device.__name__ + "."):
+# Walk packages of Cerebellum.Device and get all the submodules into the cache
+# Ignore any package that doesn't work
+for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
+    full_name = "Cerebellum.Device." + name
     try:
-        module = importlib.import_module(full_name)
-        module_name = full_name.split(".")[-1]
-        constructor = getattr(module, module_name + "Config")
-        _ = constructor()
-        DEVICE_CONFIGS[module_name] = constructor
+        importlib.import_module(full_name)
     except:
         pass
+
+# Find all modules in Device that have a valid DeviceConfig constructor
+# Create a dict of [device class name, config constructor]
+DEVICE_CONFIGS: dict[str, Any] = {}
+for member_name, member in inspect.getmembers(Cerebellum.Device):
+    if inspect.ismodule(member):
+        try:
+            constructor = getattr(member, member_name + "Config")
+            _ = constructor()
+            DEVICE_CONFIGS[member_name] = constructor
+        except:
+            pass
+
+
+
+# Logging handler and context manager to capture logging messages during an operation
+class BufferedLogHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.buffer: list[str] = []
+
+    def emit(self, record):
+        self.buffer.append(self.format(record))
+
+@contextmanager
+def capture_warnings():
+    handler = BufferedLogHandler()
+    handler.setLevel(logging.WARNING)
+    handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+
+    logging.getLogger().addHandler(handler)
+    try:
+        yield handler.buffer
+    finally:
+        logging.getLogger().removeHandler(handler)
 
 
 
@@ -92,8 +122,8 @@ class DeviceConfigWidget(QGroupBox):
     def get_device_config(self) -> DeviceConfig:
         
         # First, retrieve a DeviceConfig instance from the current selected device class
-        module_name = self.device_class_edit.currentText()
-        constructor = DEVICE_CONFIGS[module_name]
+        device_class_name = self.device_class_edit.currentText()
+        constructor = DEVICE_CONFIGS[device_class_name]
         blank_config = constructor()
 
         # Make a dict for the config based on the current values from edits
@@ -115,12 +145,14 @@ class DeviceConfigWidget(QGroupBox):
             # Convert the field value according to the type in the blank_config
             field_type = type(getattr(blank_config, field_name))
             config_dict[field_name] = field_type(field_value)
-            
+        
+        # Return a DeviceConfig corresponding to the selected class, populated
+        # with the data extracted from the edits
         return constructor(vars_dict=config_dict)
 
 
 
-    def _add_field(self, label_text, edit) -> None:
+    def _add_field(self, label_text: str, edit: QWidget) -> None:
         h_layout = QHBoxLayout()
         label = QLabel(label_text)
         h_layout.addWidget(label)
@@ -136,8 +168,8 @@ class DeviceConfigWidget(QGroupBox):
     def _update_device_select(self) -> None:
 
         # First, retrieve a DeviceConfig instance from the current selected device class
-        module_name = self.device_class_edit.currentText()
-        constructor = constructor = DEVICE_CONFIGS[module_name]
+        device_class_name = self.device_class_edit.currentText()
+        constructor = DEVICE_CONFIGS[device_class_name]
         blank_config = constructor()
 
         # Delete the widgets (label + edit) of the current fields
@@ -220,7 +252,8 @@ class EnvironmentConfigGUI(QWidget):
 
         self.main_layout = QVBoxLayout(self)
 
-        # Load/Save Buttons
+        # Load/save buttons
+        # Connect to load/save methods
         self.file_buttons_layout = QHBoxLayout()
         self.load_button = QPushButton("Load JSON")
         self.load_button.clicked.connect(self._load_json)
@@ -230,26 +263,26 @@ class EnvironmentConfigGUI(QWidget):
         self.file_buttons_layout.addWidget(self.save_button)
         self.main_layout.addLayout(self.file_buttons_layout)
 
-        # DeviceConfig List Area
+        # DeviceConfig scrollable list area
         self.device_scroll_area = QScrollArea()
         self.device_scroll_area.setWidgetResizable(True)
         self.device_container = QWidget()
         self.device_layout = QVBoxLayout(self.device_container)
         self.device_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.device_scroll_area.setWidget(self.device_container)
-
         self.main_layout.addWidget(QLabel("Device Configurations:"))
         self.main_layout.addWidget(self.device_scroll_area)
 
-        # Add Device Button
+        # "Add Device" button
         self.add_device_button = QPushButton("Add Device Config")
         self.add_device_button.clicked.connect(self._add_device_widget)
         self.main_layout.addWidget(self.add_device_button)
 
-        self.device_widgets = []
+        # Store all device widgets in a list that can be cleared
+        self.device_widgets: list[DeviceConfigWidget] = []
 
 
-    
+
     def get_env_config(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
         for widget in self.device_widgets:
@@ -266,7 +299,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-    def _remove_device_widget(self, widget, update) -> None:
+    def _remove_device_widget(self, widget: DeviceConfigWidget, update: bool) -> None:
         self.device_layout.removeWidget(widget)
         widget.deleteLater()
         if update:
@@ -280,21 +313,31 @@ class EnvironmentConfigGUI(QWidget):
             return
 
         try:
-            config = EnvironmentConfig()
-            config.read_json(filepath)
 
-            # Clear current UI
-            for widget in self.device_widgets:
-                self._remove_device_widget(widget, False)
-            self.device_widgets.clear()
+            with capture_warnings() as warnings:
 
-            # Populate UI
-            for device in config.device_config_list:
-                self._add_device_widget(device)
+                config = EnvironmentConfig()
+                config.read_json(filepath)
 
-            QMessageBox.information(self, "Success", f"Successfully loaded configuration from {os.path.basename(filepath)}")
+                # Clear current UI
+                for widget in self.device_widgets:
+                    self._remove_device_widget(widget, False)
+                self.device_widgets.clear()
+
+                # Populate UI
+                for device in config.device_config_list:
+                    self._add_device_widget(device)
+
+            if warnings:
+                string = "Warnings encountered while loading configuration file:"
+                for warning in warnings:
+                    string += f"\n{warning}"
+                QMessageBox.warning(self, "Warning", string)
+            else:
+                QMessageBox.information(self, "Success", f"Successfully loaded configuration file")
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load JSON file:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load configuration file:\n{e}")
 
 
 
@@ -311,7 +354,8 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-def envGUI():
+# Run the GUI as a standalone window
+def envGUI() -> None:
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Environment Config Editor")

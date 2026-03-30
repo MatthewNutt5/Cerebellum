@@ -5,13 +5,14 @@ Fixes/Refactors ==========
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
 - Eliminate the use of importlib to allow for building an exe
-    - Instead of importing the module through importlib, import the whole
-        package and iterate over its modules
-    - inspect.getmembers(), with inspect.ismodule()
+    - importlib and pkgutil are no longer needed for actually finding the
+        constructors, but they're still in use to get the modules into
+        the cache where they can be found by inspect.getmembers()
 
 Key Features ==========
 
 - Port procedural GUI over to TestConfigGUI
+- Create RunTestGUI
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?
@@ -31,8 +32,8 @@ Key Features ==========
 QoL Features ==========
 
 - Copy over fields when changing device/event types if the field has the same name
-- Add device indices to EnvironmentConfig (e.g. instead of DeviceConfig, it 
-    says Device #0, etc.)
+- Add device indices to EnvironmentConfig (e.g. instead of "DeviceConfig", it 
+    says "Device #0", etc.)
 - Allow for moving devices and events up/down
 - Add event device_idx remapper to EventConfigGUI
     - What if someone reorders their devices and breaks the device_idx-es?
@@ -45,5 +46,4 @@ QoL Features ==========
     - Could have an (Ignore) / Pause / Abort option in preferences
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - Add log-to-file
-- Adjust log formatting
 - Fix QComboBox flickering
