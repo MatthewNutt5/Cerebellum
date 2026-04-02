@@ -91,7 +91,7 @@ class DeviceConfigWidget(QGroupBox):
 
         # Add the remove button widget
         # NOTE: Never delete this widget, only add/remove it from the *layout* when updating
-        # This way, it remains connected to the parent EnvironmentConfigGUI
+        # This way, it remains connected to the parent GUI
         self.remove_button = QPushButton("Remove Device")
         self.remove_button.setStyleSheet("background-color: #ffcccc; color: #cc0000; font-weight: bold;")
 
@@ -207,8 +207,10 @@ class DeviceConfigWidget(QGroupBox):
                 field_edit.setValue(int(field_value))
             elif isinstance(field_value, float):
                 field_edit = QDoubleSpinBox()
+                field_edit.setDecimals(6)
                 field_edit.setRange(float("-inf"), float("inf"))
                 field_edit.setValue(float(field_value))
+                field_edit.setMinimumWidth(100)
             else:
                 field_edit = QLineEdit()
                 field_edit.setText(str(field_value))
@@ -247,9 +249,6 @@ class EnvironmentConfigGUI(QWidget):
     def __init__(self):
         
         super().__init__()
-        self.setWindowTitle("Environment Config Editor")
-        self.resize(600, 800)
-
         self.main_layout = QVBoxLayout(self)
 
         # Load/save buttons
@@ -334,7 +333,7 @@ class EnvironmentConfigGUI(QWidget):
                     string += f"\n{warning}"
                 QMessageBox.warning(self, "Warning", string)
             else:
-                QMessageBox.information(self, "Success", f"Successfully loaded configuration file")
+                QMessageBox.information(self, "Success", f"Successfully loaded configuration file.")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load configuration file:\n{e}")
@@ -348,9 +347,9 @@ class EnvironmentConfigGUI(QWidget):
 
         try:
             self.get_env_config().write_json(filepath)
-            QMessageBox.information(self, "Success", f"Successfully saved configuration to {os.path.basename(filepath)}")
+            QMessageBox.information(self, "Success", f"Successfully saved configuration file.")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save JSON file:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to save configuration file:\n{e}")
 
 
 
