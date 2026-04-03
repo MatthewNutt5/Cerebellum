@@ -14,7 +14,9 @@ from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from caen_libs import caenhvwrapper
 from typing import Any
-import logging
+import time, logging
+
+CAEN_WRITE_DELAY = 0.1
 
 
 
@@ -105,27 +107,27 @@ class CAENPowerSupply(PowerSupply):
 
     # Set the voltage setting of the given channel
     def set_voltage(self, channel: int, voltage: float) -> None:
-        self._set_channel_parameter(channel, 'V0SET', voltage)
+        self._set_channel_parameter(channel, 'V0Set', voltage)
 
     # Set the current setting of the given channel
     def set_current(self, channel: int, current: float) -> None:
-        self._set_channel_parameter(channel, 'I0SET', current)
+        self._set_channel_parameter(channel, 'I0Set', current)
 
     # Get the voltage setting of the given channel
     def get_voltage(self, channel: int) -> float:
-        return float(self._get_channel_parameter(channel, 'V0SET'))
+        return float(self._get_channel_parameter(channel, 'V0Set'))
 
     # Get the current setting of the given channel
     def get_current(self, channel: int) -> float:
-        return float(self._get_channel_parameter(channel, 'I0SET'))
+        return float(self._get_channel_parameter(channel, 'I0Set'))
     
     # Measure the voltage at the given channel
     def measure_voltage(self, channel: int) -> float:
-        return float(self._get_channel_parameter(channel, 'VMON'))
+        return float(self._get_channel_parameter(channel, 'VMon'))
     
     # Measure the current at the given channel
     def measure_current(self, channel: int) -> float:
-        return float(self._get_channel_parameter(channel, 'IMON'))
+        return float(self._get_channel_parameter(channel, 'IMon'))
 
     # Measure the power at the given channel
     def measure_power(self, channel: int) -> float:
@@ -155,10 +157,10 @@ class CAENPowerSupply(PowerSupply):
     """
 
     # NOTE: May need to convert exponent/decimal? See https://github.com/caenspa/py-caen-libs/blob/main/src/caen_libs/_caenhvwrappertypes.py#L257
-    def _get_channel_parameter(self, channel: int, parameter: str) -> str | float | int:
+    def _get_channel_parameter(self, channel: int, parameter: str):
         
         if parameter not in self.device.get_ch_param_info(self.board.slot, channel):
-            raise KeyError(f"Invalid CAEN HV channel parameter ({parameter}). Available choices: {self.device.get_sys_prop_list()}")
+            raise KeyError(f"Invalid CAEN HV channel parameter ({parameter}). Available choices: {self.device.get_ch_param_info(self.board.slot, channel)}")
         param_prop = self.device.get_ch_param_prop(self.board.slot, channel, parameter)
         if param_prop.mode is not caenhvwrapper.ParamMode.WRONLY:
             # Return type could be str, float, or int; convert as necessary
@@ -166,12 +168,13 @@ class CAENPowerSupply(PowerSupply):
         else:
             raise KeyError(f"CAEN HV channel parameter ({parameter}) is write-only.")
 
-    def _set_channel_parameter(self, channel: int, parameter: str, value: str | float | int) -> None:
+    def _set_channel_parameter(self, channel: int, parameter: str, value) -> None:
 
         if parameter not in self.device.get_ch_param_info(self.board.slot, channel):
-            raise KeyError(f"Invalid CAEN HV channel parameter ({parameter}). Available choices: {self.device.get_sys_prop_list()}")
+            raise KeyError(f"Invalid CAEN HV channel parameter ({parameter}). Available choices: {self.device.get_ch_param_info(self.board.slot, channel)}")
         param_prop = self.device.get_ch_param_prop(self.board.slot, channel, parameter)
         if param_prop.mode is not caenhvwrapper.ParamMode.RDONLY:
             self.device.set_ch_param(self.board.slot, [channel], parameter, value)
+            time.sleep(CAEN_WRITE_DELAY)
         else:
             raise KeyError(f"CAEN HV channel parameter ({parameter}) is read-only.")
