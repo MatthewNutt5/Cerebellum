@@ -2,6 +2,7 @@
 Placeholder
 """
 
+from Cerebellum.GUI.Common import capture_warnings
 from Cerebellum.TestConfig import TestConfig
 import Cerebellum.Event
 from Cerebellum.Event import Event
@@ -14,8 +15,7 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-from contextlib import contextmanager
-import inspect, sys, os, logging
+import inspect, sys
 
 # Find all events in Event that have a valid constructor
 # Create a dict of [event class name, event constructor]
@@ -32,35 +32,15 @@ for member_name, member in inspect.getmembers(Cerebellum.Event):
 
 
 
-# Logging handler and context manager to capture logging messages during an operation
-class BufferedLogHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-        self.buffer: list[str] = []
-
-    def emit(self, record):
-        self.buffer.append(self.format(record))
-
-@contextmanager
-def capture_warnings():
-    handler = BufferedLogHandler()
-    handler.setLevel(logging.WARNING)
-    handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-
-    logging.getLogger().addHandler(handler)
-    try:
-        yield handler.buffer
-    finally:
-        logging.getLogger().removeHandler(handler)
-
-
-
 class EventWidget(QGroupBox):
 
-    def __init__(self, event: (Event | None) = None, parent = None):
+    def __init__(self, event: (Event | None) = None, device_config_list: (list[DeviceConfig] | None) = None, parent = None):
 
         super().__init__("Event", parent)
         self.main_layout = QVBoxLayout(self)
+
+        # # Set device_config_list for device_idx fields
+        # self.device_config_list = device_config_list
 
         # Use available constructors as choices for the Event class
         self.event_class_edit = QComboBox()
@@ -89,17 +69,21 @@ class EventWidget(QGroupBox):
 
         # Update event select to open up fields and allow for data population
         # This populates field_edits with field names and corresponding widgets
+        # This updates the device selection for any device_idx field
         # Also re-run this update any time the event selection changes
         self._update_event_select()
         self.event_class_edit.currentTextChanged.connect(self._update_event_select)
 
         # Populate with data if provided
         # Type conversions should only be necessary for QComboBox
-        # Need a special case here for extracting device_idx
+        # Special case for device_idx
         if event:
             for field_name, field_edit in self.field_edits.items():
                 field_value = vars(event)[field_name]
                 if isinstance(field_edit, QComboBox):
+                    # if (field_name == "device_idx"):
+                    #     field_edit.setCurrentIndex(int(field_value))
+                    # else:
                     field_edit.setCurrentText(str(field_value))
                 elif isinstance(field_edit, QCheckBox):
                     field_edit.setChecked(bool(field_value))
@@ -124,7 +108,11 @@ class EventWidget(QGroupBox):
         for field_name, field_edit in self.field_edits.items():
             
             # Get the field value according to the edit type
+            # Special case for device_idx
             if isinstance(field_edit, QComboBox):
+                # if (field_name == "device_idx"):
+                #     field_value = field_edit.currentIndex()
+                # else:
                 field_value = field_edit.currentText()
             elif isinstance(field_edit, QCheckBox):
                 field_value = field_edit.isChecked()
@@ -145,10 +133,20 @@ class EventWidget(QGroupBox):
 
 
 
-    # def update_devices(self, device_config_list: list[DeviceConfig]) -> None:
+    # def update_devices(self, device_config_list: (list[DeviceConfig] | None)) -> None:
 
     #     # If this event requires a device_idx, update the options
-    #     if ("device_idx" in self.field_edits):
+    #     # Get the old value and copy it over
+    #     # This way, the user can still see e.g. 2 (Main Power) and select the new 3 (Main Power)
+    #     # But if this old value stays, device_idx will be extracted as -1 and it will fail during validation
+    #     if device_config_list and ("device_idx" in self.field_edits) and isinstance(self.field_edits["device_idx"], QComboBox):
+    #         field_edit = self.field_edits["device_idx"]
+    #         field_value = field_edit.currentText()
+    #         field_edit.clear()
+    #         items = [f"{idx}: {device.display_name}" for idx, device in enumerate(device_config_list)]
+    #         field_edit.addItems(items)
+    #         field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
+    #         field_edit.setCurrentText(field_value)
 
 
 
@@ -185,6 +183,9 @@ class EventWidget(QGroupBox):
         self.field_widgets.clear()
         
         # Replace them with new fields/widgets corresponding to instance attributes
+        # device = False
+        # idx_edit: QWidget
+        # idx_value: Any
         for field_name, field_value in vars(blank_event).items():
             # First check if the field has a corresponding _options class attribute
             # If so, construct the field_edit as a ComboBox, and set the options as such
@@ -221,10 +222,9 @@ class EventWidget(QGroupBox):
             # if (field_name == "device_idx"):
             #     field_edit = QComboBox()
             #     field_edit.setEditable(True) # Set editable so that the field won't ignore a loaded value
-            #     items = [port.name for port in serial.tools.list_ports.comports()]
-            #     field_edit.addItems(items)
-            #     field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
-            #     field_edit.setCurrentText(str(field_value))
+            #     device = True
+            #     idx_edit = field_edit
+            #     idx_value = field_value
 
             # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
             field_edit.wheelEvent = (lambda event: event.ignore())
@@ -239,6 +239,10 @@ class EventWidget(QGroupBox):
 
             # Update the dict of field edits
             self.field_edits[field_name] = field_edit
+
+        # if device:
+        #     self.update_devices(self.device_config_list)
+        #     idx_edit.setCurrentIndex(int(idx_value))
 
         # Add the remove button back to the layout
         self.main_layout.addWidget(self.remove_button)

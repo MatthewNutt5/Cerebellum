@@ -2,6 +2,7 @@
 Placeholder
 """
 
+from Cerebellum.GUI.Common import capture_warnings
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 import Cerebellum.Device
 from Cerebellum.Device.Device import DeviceConfig
@@ -13,8 +14,7 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-from contextlib import contextmanager
-import pkgutil, importlib, inspect, sys, os, logging
+import pkgutil, importlib, inspect, sys
 import serial.tools.list_ports
 
 # Walk packages of Cerebellum.Device and get all the submodules into the cache
@@ -37,29 +37,6 @@ for member_name, member in inspect.getmembers(Cerebellum.Device):
             DEVICE_CONFIGS[member_name] = constructor
         except:
             pass
-
-
-
-# Logging handler and context manager to capture logging messages during an operation
-class BufferedLogHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-        self.buffer: list[str] = []
-
-    def emit(self, record):
-        self.buffer.append(self.format(record))
-
-@contextmanager
-def capture_warnings():
-    handler = BufferedLogHandler()
-    handler.setLevel(logging.WARNING)
-    handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-
-    logging.getLogger().addHandler(handler)
-    try:
-        yield handler.buffer
-    finally:
-        logging.getLogger().removeHandler(handler)
 
 
 
