@@ -3,6 +3,7 @@ Placeholder
 """
 
 from Cerebellum.GUI.Common import capture_warnings
+from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
 import Cerebellum.Event
 from Cerebellum.Event import Event
@@ -39,8 +40,8 @@ class EventWidget(QGroupBox):
         super().__init__("Event", parent)
         self.main_layout = QVBoxLayout(self)
 
-        # # Set device_config_list for device_idx fields
-        # self.device_config_list = device_config_list
+        # Set device_config_list for device_idx fields
+        self.set_device_list(device_config_list)
 
         # Use available constructors as choices for the Event class
         self.event_class_edit = QComboBox()
@@ -81,10 +82,10 @@ class EventWidget(QGroupBox):
             for field_name, field_edit in self.field_edits.items():
                 field_value = vars(event)[field_name]
                 if isinstance(field_edit, QComboBox):
-                    # if (field_name == "device_idx"):
-                    #     field_edit.setCurrentIndex(int(field_value))
-                    # else:
-                    field_edit.setCurrentText(str(field_value))
+                    if (field_name == "device_idx"):
+                        field_edit.setCurrentIndex(int(field_value))
+                    else:
+                        field_edit.setCurrentText(str(field_value))
                 elif isinstance(field_edit, QCheckBox):
                     field_edit.setChecked(bool(field_value))
                 elif isinstance(field_edit, QSpinBox):
@@ -110,10 +111,10 @@ class EventWidget(QGroupBox):
             # Get the field value according to the edit type
             # Special case for device_idx
             if isinstance(field_edit, QComboBox):
-                # if (field_name == "device_idx"):
-                #     field_value = field_edit.currentIndex()
-                # else:
-                field_value = field_edit.currentText()
+                if (field_name == "device_idx"):
+                    field_value = field_edit.currentIndex()
+                else:
+                    field_value = field_edit.currentText()
             elif isinstance(field_edit, QCheckBox):
                 field_value = field_edit.isChecked()
             elif isinstance(field_edit, (QSpinBox | QDoubleSpinBox)):
@@ -133,24 +134,29 @@ class EventWidget(QGroupBox):
 
 
 
-    # def update_devices(self, device_config_list: (list[DeviceConfig] | None)) -> None:
+    def set_device_list(self, device_config_list: (list[DeviceConfig] | None)) -> None:
+        self.device_config_list = device_config_list
 
-    #     # If this event requires a device_idx, update the options
-    #     # Get the old value and copy it over
-    #     # This way, the user can still see e.g. 2 (Main Power) and select the new 3 (Main Power)
-    #     # But if this old value stays, device_idx will be extracted as -1 and it will fail during validation
-    #     if device_config_list and ("device_idx" in self.field_edits) and isinstance(self.field_edits["device_idx"], QComboBox):
-    #         field_edit = self.field_edits["device_idx"]
-    #         field_value = field_edit.currentText()
-    #         field_edit.clear()
-    #         items = [f"{idx}: {device.display_name}" for idx, device in enumerate(device_config_list)]
-    #         field_edit.addItems(items)
-    #         field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
-    #         field_edit.setCurrentText(field_value)
+
+    def update_devices(self) -> None:
+
+        # If this event requires a device_idx, update the options
+        # Get the old value and copy it over
+        # This way, the user can still see e.g. 2 (Main Power) and select the new 3 (Main Power)
+        # But if this old value stays (i.e. any entry that's not an option), device_idx will be extracted as 0 and could cause issues
+        if self.device_config_list and ("device_idx" in self.field_edits) and isinstance(self.field_edits["device_idx"], QComboBox):
+            field_edit = self.field_edits["device_idx"]
+            field_value = field_edit.currentText()
+            field_edit.clear()
+            items = [f"{idx} ({device.display_name})" for idx, device in enumerate(self.device_config_list)]
+            field_edit.addItems(items)
+            field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
+            field_edit.setCurrentText(field_value)
 
 
 
     def _add_field(self, label_text: str, edit: QWidget) -> None:
+
         h_layout = QHBoxLayout()
         label = QLabel(label_text)
         h_layout.addWidget(label)
@@ -183,9 +189,6 @@ class EventWidget(QGroupBox):
         self.field_widgets.clear()
         
         # Replace them with new fields/widgets corresponding to instance attributes
-        # device = False
-        # idx_edit: QWidget
-        # idx_value: Any
         for field_name, field_value in vars(blank_event).items():
             # First check if the field has a corresponding _options class attribute
             # If so, construct the field_edit as a ComboBox, and set the options as such
@@ -216,15 +219,12 @@ class EventWidget(QGroupBox):
                 field_edit = QLineEdit()
                 field_edit.setText(str(field_value))
                 
-            # # Special case
-            # # If a field is called "device_idx", overwrite the widget with a ComboBox that retrieves all current Devices
-            # # The updating is done in a separate function
-            # if (field_name == "device_idx"):
-            #     field_edit = QComboBox()
-            #     field_edit.setEditable(True) # Set editable so that the field won't ignore a loaded value
-            #     device = True
-            #     idx_edit = field_edit
-            #     idx_value = field_value
+            # Special case
+            # If a field is called "device_idx", overwrite the widget with a ComboBox that retrieves all current Devices
+            # The updating is done in a separate function
+            if (field_name == "device_idx"):
+                field_edit = QComboBox()
+                field_edit.setEditable(True) # Set editable so that the field won't ignore a loaded value
 
             # Ignore wheelEvents so that scrolling will only ever scroll the list of configs
             field_edit.wheelEvent = (lambda event: event.ignore())
@@ -240,9 +240,9 @@ class EventWidget(QGroupBox):
             # Update the dict of field edits
             self.field_edits[field_name] = field_edit
 
-        # if device:
-        #     self.update_devices(self.device_config_list)
-        #     idx_edit.setCurrentIndex(int(idx_value))
+        # Call the device update function without a new list to update from the existing list
+        # Do this after the dict has been completed so that the device_idx field will be available
+        self.update_devices()
 
         # Add the remove button back to the layout
         self.main_layout.addWidget(self.remove_button)
@@ -256,12 +256,16 @@ class TestConfigGUI(QWidget):
         super().__init__()
         self.main_layout = QVBoxLayout(self)
 
-        # # Load Environment Config
-        # self.env_layout = QHBoxLayout()
-        # self.load_env_btn = QPushButton("Load EnvironmentConfig JSON")
-        # self.load_env_btn.clicked.connect(self.load_env_json)
-        # self.env_layout.addWidget(self.load_env_btn)
-        # self.main_layout.addLayout(self.env_layout)
+        # Load EnvironmentConfig
+        # This is a stopgap used when running TestConfigGUI on its own
+        # When run as part of MainGUI, simply retrieve the current environment
+        # from the environment tab
+        self.device_config_list = None
+        self.env_layout = QHBoxLayout()
+        self.load_env_button = QPushButton("Load EnvironmentConfig JSON")
+        self.load_env_button.clicked.connect(self._load_env_json)
+        self.env_layout.addWidget(self.load_env_button)
+        self.main_layout.addLayout(self.env_layout)
 
         # Load/save buttons
         # Connect to load/save methods
@@ -302,32 +306,32 @@ class TestConfigGUI(QWidget):
 
 
 
-    # def load_env_json(self):
-    #     filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
-    #     if not filepath:
-    #         return
+    def _load_env_json(self):
+        filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
+        if not filepath:
+            return
 
-    #     try:
-    #         config = EnvironmentConfig()
-    #         config.read_json(filepath)
-    #         self.psu_config_list = config.PSUConfigList
-    #         self.update_all_psu_dropdowns()
-    #         QMessageBox.information(self, "Success", f"Successfully loaded Environment Config from {os.path.basename(filepath)}")
-    #     except Exception as e:
-    #         QMessageBox.critical(self, "Error", f"Failed to load Environment Config JSON:\n{str(e)}")
+        try:
+            config = EnvironmentConfig()
+            config.read_json(filepath)
+            self.device_config_list = config.device_config_list
+            self._update_devices()
+            QMessageBox.information(self, "Success", f"Successfully loaded configuration file.")
 
-    # def update_all_psu_dropdowns(self):
-    #     for w in self.psu_settings_widgets:
-    #         w.psu_config_list = self.psu_config_list
-    #         w.update_psu_dropdown()
-    #     for w in self.event_widgets:
-    #         w.psu_config_list = self.psu_config_list
-    #         w.update_psu_dropdown()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load configuration file:\n{e}")
+
+
+
+    def _update_devices(self):
+        for w in self.event_widgets:
+            w.set_device_list(self.device_config_list)
+            w.update_devices()
 
 
 
     def _add_event_widget(self, event: (Event | None) = None) -> None:
-        widget = EventWidget(event)
+        widget = EventWidget(event, self.device_config_list)
         self.event_layout.addWidget(widget)
         self.event_widgets.append(widget)
         widget.remove_button.clicked.connect(lambda: self._remove_event_widget(widget, True))

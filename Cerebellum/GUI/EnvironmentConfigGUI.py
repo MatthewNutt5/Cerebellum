@@ -130,6 +130,7 @@ class DeviceConfigWidget(QGroupBox):
 
 
     def _add_field(self, label_text: str, edit: QWidget) -> None:
+        
         h_layout = QHBoxLayout()
         label = QLabel(label_text)
         h_layout.addWidget(label)
