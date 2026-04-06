@@ -306,6 +306,7 @@ class TestConfigGUI(QWidget):
         return config
 
 
+
     def _update_devices(self):
         for w in self.event_widgets:
             w.set_device_list(self.device_config_list)
