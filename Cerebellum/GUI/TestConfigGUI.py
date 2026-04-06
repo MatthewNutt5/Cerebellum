@@ -251,21 +251,22 @@ class EventWidget(QGroupBox):
 
 class TestConfigGUI(QWidget):
 
-    def __init__(self):
+    def __init__(self, standalone: bool):
 
         super().__init__()
         self.main_layout = QVBoxLayout(self)
 
-        # Load EnvironmentConfig
+        # Load EnvironmentConfig button
         # This is a stopgap used when running TestConfigGUI on its own
         # When run as part of MainGUI, simply retrieve the current environment
         # from the environment tab
-        self.device_config_list = None
-        self.env_layout = QHBoxLayout()
-        self.load_env_button = QPushButton("Load EnvironmentConfig JSON")
-        self.load_env_button.clicked.connect(self._load_env_json)
-        self.env_layout.addWidget(self.load_env_button)
-        self.main_layout.addLayout(self.env_layout)
+        if standalone:
+            self.device_config_list: (list[DeviceConfig] | None) = None
+            self.env_layout = QHBoxLayout()
+            self.load_env_button = QPushButton("Load EnvironmentConfig JSON")
+            self.load_env_button.clicked.connect(self._load_env_json)
+            self.env_layout.addWidget(self.load_env_button)
+            self.main_layout.addLayout(self.env_layout)
 
         # Load/save buttons
         # Connect to load/save methods
@@ -303,24 +304,6 @@ class TestConfigGUI(QWidget):
         for widget in self.event_widgets:
             config.event_list.append(widget.get_event())
         return config
-
-
-
-    def _load_env_json(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
-        if not filepath:
-            return
-
-        try:
-            config = EnvironmentConfig()
-            config.read_json(filepath)
-            self.device_config_list = config.device_config_list
-            self._update_devices()
-            QMessageBox.information(self, "Success", f"Successfully loaded configuration file.")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load configuration file:\n{e}")
-
 
 
     def _update_devices(self):
@@ -392,14 +375,41 @@ class TestConfigGUI(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to save configuration file:\n{e}")
 
 
+    
+    def _load_env_json(self):
+        filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
+        if not filepath:
+            return
+
+        try:
+
+            with capture_warnings() as warnings:
+
+                config = EnvironmentConfig()
+                config.read_json(filepath)
+                self.device_config_list = config.device_config_list
+                self._update_devices()
+
+            if warnings:
+                string = "Warnings encountered while loading configuration file:"
+                for warning in warnings:
+                    string += f"\n{warning}"
+                QMessageBox.warning(self, "Warning", string)
+            else:
+                QMessageBox.information(self, "Success", f"Successfully loaded configuration file.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load configuration file:\n{e}")
+
+
 
 # Run the GUI as a standalone window
-def testGUI() -> None:
+def test_cfg_gui() -> None:
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Test Config Editor")
     window.resize(600, 800)
-    central_widget = TestConfigGUI()
+    central_widget = TestConfigGUI(True) # Run in standalone mode
     window.setCentralWidget(central_widget)
     window.show()
     sys.exit(app.exec())

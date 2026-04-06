@@ -4,15 +4,24 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
-- Eliminate the use of importlib to allow for building an exe
-    - importlib and pkgutil are no longer needed for actually finding the
-        constructors, but they're still in use to get the modules into
-        the cache where they can be found by inspect.getmembers()
+- Revert the attempted removal of importlib and pkgutil
+    - The previous line of thinking was to offer a standalone .exe to the user
+        with all Devices integrated, which would have required the removal of
+        these libraries,
+    - And if the user wanted to add/modify Devices, they could download the
+        source code,
+    - But wouldn't it be better to ship an .exe that can dynamically import
+        from a local directory of Devices, so that the user can modify as they
+        wish without having to look at the other parts of the code? Make the
+        modification a more obvious and accessible feature of the project
+- Rewrite RunTestGUI with QProcess and a text box
+    - Current setup doesn't allow for concurrent GUI control over a running
+        test, nor input from the terminal (at bare minimum, for WaitEvents)
+    - Use a QProcess that connects to the log_box, and a LineEdit below(?) that
+        will pipe to the process
 
 Key Features ==========
 
-- Port procedural GUI over to TestConfigGUI
-- Create RunTestGUI
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?

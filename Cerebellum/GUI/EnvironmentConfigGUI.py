@@ -332,7 +332,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 # Run the GUI as a standalone window
-def envGUI() -> None:
+def env_cfg_gui() -> None:
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Environment Config Editor")

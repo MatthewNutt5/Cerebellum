@@ -15,6 +15,19 @@ from Cerebellum.Device.Device import Device, DeviceConfig, create_device
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 import logging, signal
+from contextlib import contextmanager
+
+# Simple contextmanager to tab logging format during a subprocess
+@contextmanager
+def tab_logging():
+
+    # Tab with four spaces
+    logging.basicConfig(format="%(levelname)s:     %(message)s")
+
+    yield
+    
+    # Return formatting to default
+    logging.basicConfig(format="%(levelname)s: %(message)s")
 
 
 
@@ -69,7 +82,8 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     # A standard Exception will end run_test prematurely
     # A BaseException (e.g. KeyboardInterrupt) will end the entire program
     except Exception as e:
-        
+
+        logging.basicConfig(format="%(levelname)s: %(message)s")
         logging.error(f"During the testing routine, an exception was encountered: {e}")
         logging.error(f"Aborting testing routine.")
         pass
@@ -93,8 +107,9 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
 def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
     device_list = []
     for idx, device_config in enumerate(device_config_list):
-        logging.info(f"Initializing device #{idx} ({device_config.display_name}) -----")
-        device_list.append(create_device(device_config))
+        logging.info(f"Initializing device #{idx} ({device_config.display_name}) ----------")
+        with tab_logging():
+            device_list.append(create_device(device_config))
         
     return device_list
 
@@ -103,8 +118,9 @@ def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
 def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
     for idx, event in enumerate(event_list):
 
-        logging.info(f"Executing event #{idx} -----")
-        logging.info(f"{event.__class__.__name__}: {event.comment}")
+        logging.info(f"Executing event #{idx} ----------")
+        with tab_logging():
+            logging.info(f"{event.__class__.__name__}: {event.comment}")
 
         if isinstance(event, DeviceEvent):
             event.exec(device_list[event.device_idx])
