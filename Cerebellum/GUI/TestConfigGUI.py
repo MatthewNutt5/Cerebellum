@@ -2,12 +2,12 @@
 Placeholder
 """
 
-from Cerebellum.GUI.Common import capture_warnings
+from Cerebellum.Common import EVENTS
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
-import Cerebellum.Event
 from Cerebellum.Event import Event
 from Cerebellum.Device.Device import DeviceConfig
+from Cerebellum.GUI.Common import capture_warnings
 
 from PySide6.QtWidgets import  (QApplication, QMainWindow,
                                 QWidget, QScrollArea, QGroupBox, QVBoxLayout, QHBoxLayout,
@@ -16,20 +16,7 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import inspect, sys
-
-# Find all events in Event that have a valid constructor
-# Create a dict of [event class name, event constructor]
-EVENTS: dict[str, Any] = {}
-for member_name, member in inspect.getmembers(Cerebellum.Event):
-    if inspect.isclass(member):
-        try:
-            _ = member()
-            # The ABC class is used for abstract interfaces; it should not be included
-            if (member_name != "ABC"):
-                EVENTS[member_name] = member
-        except:
-            pass
+import sys
 
 
 

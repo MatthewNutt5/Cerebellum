@@ -2,10 +2,10 @@
 Placeholder
 """
 
-from Cerebellum.GUI.Common import capture_warnings
+from Cerebellum.Common import DEVICE_CONFIGS
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
-import Cerebellum.Device
 from Cerebellum.Device.Device import DeviceConfig
+from Cerebellum.GUI.Common import capture_warnings
 
 from PySide6.QtWidgets import  (QApplication, QMainWindow,
                                 QWidget, QScrollArea, QGroupBox, QVBoxLayout, QHBoxLayout,
@@ -14,29 +14,7 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import pkgutil, importlib, inspect, sys
-import serial.tools.list_ports
-
-# Walk packages of Cerebellum.Device and get all the submodules into the cache
-# Ignore any package that doesn't work
-for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
-    full_name = "Cerebellum.Device." + name
-    try:
-        importlib.import_module(full_name)
-    except:
-        pass
-
-# Find all modules in Device that have a valid DeviceConfig constructor
-# Create a dict of [device class name, config constructor]
-DEVICE_CONFIGS: dict[str, Any] = {}
-for member_name, member in inspect.getmembers(Cerebellum.Device):
-    if inspect.ismodule(member):
-        try:
-            constructor = getattr(member, member_name + "Config")
-            _ = constructor()
-            DEVICE_CONFIGS[member_name] = constructor
-        except:
-            pass
+import sys, serial.tools.list_ports
 
 
 

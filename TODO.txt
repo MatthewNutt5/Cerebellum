@@ -4,24 +4,24 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
-- Revert the attempted removal of importlib and pkgutil
-    - The previous line of thinking was to offer a standalone .exe to the user
-        with all Devices integrated, which would have required the removal of
-        these libraries,
-    - And if the user wanted to add/modify Devices, they could download the
-        source code,
-    - But wouldn't it be better to ship an .exe that can dynamically import
-        from a local directory of Devices, so that the user can modify as they
-        wish without having to look at the other parts of the code? Make the
-        modification a more obvious and accessible feature of the project
 - Rewrite RunTestGUI with QProcess and a text box
     - Current setup doesn't allow for concurrent GUI control over a running
         test, nor input from the terminal (at bare minimum, for WaitEvents)
     - Use a QProcess that connects to the log_box, and a LineEdit below(?) that
         will pipe to the process
+- Add more checks to read_json methods
+    - We check whether or not a good constructor can be found, but what if the
+        JSON doesn't even include a name to look with?
+- Consider reorganizing Event into a subpackage to make adding new Events easier
+    - For instance, start with a base Event module that includes the abstract
+        classes and device-less events, then have another module for PowerSupply
+        Events, one for RB events, etc.
+    - This way, users can simply add new modules as needed, instead of having
+        to update the monolithic Event.py file
 
 Key Features ==========
 
+- Move shutdown_order to EnvironmentConfig and add to GUI
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?

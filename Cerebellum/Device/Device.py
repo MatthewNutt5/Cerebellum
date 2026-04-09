@@ -2,11 +2,8 @@
 Placeholder
 """
 
-import Cerebellum.Device
-
 from abc import ABC, abstractmethod
 from typing import Any
-import pkgutil, importlib, inspect
 
 
 
@@ -49,38 +46,3 @@ class Device(ABC):
     @abstractmethod
     def get_id(self) -> str:
         pass
-
-
-
-# Walk packages of Cerebellum.Device and get all the submodules into the cache
-# Ignore any package that doesn't work
-for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
-    full_name = "Cerebellum.Device." + name
-    try:
-        importlib.import_module(full_name)
-    except:
-        pass
-
-# Find all modules in Device and get their Device constructors
-# Create a dict of [device class name, device constructor]
-# This may include invalid constructors (e.g. PowerSupply())
-DEVICES: dict[str, Any] = {}
-for member_name, member in inspect.getmembers(Cerebellum.Device):
-    if inspect.ismodule(member):
-        try:
-            constructor = getattr(member, member_name)
-            DEVICES[member_name] = constructor
-        except:
-            pass
-
-
-
-def create_device(config: DeviceConfig) -> Device:        
-    
-    # Import the instance constructor from the module
-    try:
-        device_class_name = config.__class__.__name__.replace("Config", "")
-        constructor = DEVICES[device_class_name]
-        return constructor(config)
-    except Exception as e:
-        raise RuntimeError(f"Device constructor {device_class_name}() failed: {e}")

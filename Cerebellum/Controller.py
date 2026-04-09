@@ -8,11 +8,12 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
+from Cerebellum.Common import create_device
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Event import *
-from Cerebellum.Device.Device import Device, DeviceConfig, create_device
-from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
+from Cerebellum.Device.Device import Device, DeviceConfig
+from Cerebellum.Device.PowerSupply import PowerSupply
 
 import logging, signal
 from contextlib import contextmanager

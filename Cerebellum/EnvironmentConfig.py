@@ -10,33 +10,11 @@ This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
 """
 
-import Cerebellum.Device
+from Cerebellum.Common import DEVICE_CONFIGS
 from Cerebellum.Device.Device import DeviceConfig
 
-from typing import Any
 from json import dump, load
-import pkgutil, importlib, inspect, logging
-
-# Walk packages of Cerebellum.Device and get all the submodules into the cache
-# Ignore any package that doesn't work
-for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
-    full_name = "Cerebellum.Device." + name
-    try:
-        importlib.import_module(full_name)
-    except:
-        pass
-
-# Find all modules in Device that have a valid DeviceConfig constructor
-# Create a dict of [config class name, config constructor]
-DEVICE_CONFIGS: dict[str, Any] = {}
-for member_name, member in inspect.getmembers(Cerebellum.Device):
-    if inspect.ismodule(member):
-        try:
-            constructor = getattr(member, member_name + "Config")
-            _ = constructor()
-            DEVICE_CONFIGS[member_name + "Config"] = constructor
-        except:
-            pass
+import logging
 
 
 
@@ -78,7 +56,7 @@ class EnvironmentConfig:
         # Check for identifier
         json_class_name = json_dict.pop("class_name")
         if (json_class_name != self.__class__.__name__):
-            raise ValueError(f"Invalid {self.__class__.__name__} JSON file (class_name field is {json_class_name}, not {self.__class__.__name__}).")
+            raise ValueError(f"Invalid {self.__class__.__name__} JSON file: class_name field is {json_class_name}, not {self.__class__.__name__}.")
         
         # Assign fields to JSON data
         # Convert object dicts to objects
@@ -87,12 +65,17 @@ class EnvironmentConfig:
             
             # Look for config class_name field to inform what sort of Config to construct
             # Also remove class_name from the dict so it doesn't end up in the instance
-            config_class_name = config.pop("class_name")
+            config_class_name = str(config.pop("class_name"))
+            device_class_name = config_class_name.replace("Config", "")
             
-            # Use the corresponding constructor from the config_class_name
-            try:
-                constructor = DEVICE_CONFIGS[config_class_name]
-                self.device_config_list.append(constructor(vars_dict=config))
-            except Exception as e:
-                logging.warning(f"DeviceConfig constructor {config_class_name}() failed: {e}")
+            # Use the corresponding constructor from DEVICE_CONFIGS
+            if (device_class_name in DEVICE_CONFIGS):
+                constructor = DEVICE_CONFIGS[device_class_name]
+                try:
+                    self.device_config_list.append(constructor(vars_dict=config))
+                except Exception as e:
+                    logging.warning(f"DeviceConfig constructor {config_class_name}() failed: {e}")
+                    logging.warning("Skipping config...")
+            else:
+                logging.warning(f"DeviceConfig constructor {config_class_name}() not in DEVICE_CONFIGS constructor list. Either the {device_class_name} module isn't installed, or the constructor previously failed to verify.")
                 logging.warning("Skipping config...")

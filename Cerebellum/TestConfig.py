@@ -11,7 +11,7 @@ class, which is a helper class used to specify an individual criterion the test
 should evaluate.
 """
 
-import Cerebellum.Event
+from Cerebellum.Common import EVENTS
 from Cerebellum.Event import Event
 
 from json import dump, load
@@ -70,10 +70,14 @@ class TestConfig:
             # Also remove class_name from the dict so it doesn't end up in the instance
             event_class_name = event.pop("class_name")
 
-            # From the event class_name, import its constructor from the Event module
-            try:
-                constructor = getattr(Cerebellum.Event, event_class_name)
-                self.event_list.append(constructor(vars_dict=event))
-            except Exception as e:
-                logging.warning(f"Invalid Event class_name ({event_class_name}) found during JSON read: {e}")
-                logging.warning(f"Skipping event...")
+            # Use the corresponding constructor from EVENTS
+            if (event_class_name in EVENTS):
+                constructor = EVENTS[event_class_name]
+                try:
+                    self.event_list.append(constructor(vars_dict=event))
+                except Exception as e:
+                    logging.warning(f"Event constructor {event_class_name}() failed: {e}")
+                    logging.warning("Skipping event...")
+            else: 
+                logging.warning(f"Event constructor {event_class_name}() not in EVENTS constructor list. Either the {event_class_name} class isn't installed, or the constructor previously failed to verify.")
+                logging.warning("Skipping event...")
