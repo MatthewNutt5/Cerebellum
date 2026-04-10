@@ -63,7 +63,6 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
         device_list = _init_device_list(config.device_config_list)
 
         # Report and wait for user input
-        logging.info("")
         logging.info("All devices initialized successfully.")
         logging.info("Verify the credentials appear as expected before continuing to event execution.")
         input("Press Enter to continue...")

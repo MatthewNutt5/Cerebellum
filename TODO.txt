@@ -4,14 +4,6 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
-- Rewrite RunTestGUI with QProcess and a text box
-    - Current setup doesn't allow for concurrent GUI control over a running
-        test, nor input from the terminal (at bare minimum, for WaitEvents)
-    - Use a QProcess that connects to the log_box, and a LineEdit below(?) that
-        will pipe to the process
-- Add more checks to read_json methods
-    - We check whether or not a good constructor can be found, but what if the
-        JSON doesn't even include a name to look with?
 - Consider reorganizing Event into a subpackage to make adding new Events easier
     - For instance, start with a base Event module that includes the abstract
         classes and device-less events, then have another module for PowerSupply
@@ -56,3 +48,4 @@ QoL Features ==========
 - Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - Add log-to-file
 - Fix QComboBox flickering
+- Test progress bar

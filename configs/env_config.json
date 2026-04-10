@@ -1,0 +1,23 @@
+{
+    "device_config_list": [
+        {
+            "display_name": "Low Voltage Power Supply",
+            "protocol": "IP",
+            "ip": "192.168.0.40",
+            "com": "COM7",
+            "baudrate": 115200,
+            "class_name": "SCPIPowerSupplyConfig"
+        },
+        {
+            "display_name": "High Voltage Power Supply",
+            "system_type": "SY4527",
+            "link_type": "TCPIP",
+            "ip": "192.168.0.1",
+            "username": "admin",
+            "password": "rice2024",
+            "board_slot": 0,
+            "class_name": "CAENPowerSupplyConfig"
+        }
+    ],
+    "class_name": "EnvironmentConfig"
+}
