@@ -71,11 +71,21 @@ class RunTestGUI(QWidget):
 
 
 
-    def _log(self, string: str): self.log_box.appendPlainText(string)
+    def set_env(self, config: EnvironmentConfig) -> None:
+        self.environment_config = config
 
 
 
-    def _start_test(self):
+    def set_test(self, config: TestConfig) -> None:
+        self.test_config = config
+
+
+
+    def _log(self, string: str) -> None: self.log_box.appendPlainText(string)
+
+
+
+    def _start_test(self) -> None:
 
         # Check for configs
         if not self.environment_config:
@@ -96,7 +106,7 @@ class RunTestGUI(QWidget):
         self.log_box.clear()
 
         # Start the test
-        self._log("Initiating process.")
+        self._log("Initiating process.\n")
         self.process = QProcess()
         self.process.finished.connect(self._handle_finish)
         self.process.readyReadStandardOutput.connect(self._handle_stdout)
@@ -105,12 +115,12 @@ class RunTestGUI(QWidget):
 
 
 
-    def _stop_test(self):
+    def _stop_test(self) -> None:
         if self.process:
             self.process.write(b"STOP\n")
 
-    def _handle_finish(self):
-        self._log("Process has exited.")
+    def _handle_finish(self) -> None:
+        self._log("\nProcess has exited.")
         self.process = None
         try:
             os.remove(f"{ABS_DIR}/temp_env.json")
@@ -118,25 +128,25 @@ class RunTestGUI(QWidget):
         except:
             pass
 
-    def _handle_stdout(self):
+    def _handle_stdout(self) -> None:
         if self.process:
             data = self.process.readAllStandardOutput()
             self._log(str(data.data(), "utf-8").strip())
 
-    def _handle_stderr(self):
+    def _handle_stderr(self) -> None:
         if self.process:
             data = self.process.readAllStandardError()
             self._log(str(data.data(), "utf-8").strip())
 
-    def _send_input(self):
+    def _send_input(self) -> None:
         if self.process:
             data = (self.input_line.text() + "\n").encode()
             self.input_line.clear()
             self.process.write(data)
 
 
-
-    def _load_env_json(self):
+    
+    def _load_env_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
@@ -145,8 +155,9 @@ class RunTestGUI(QWidget):
 
             with capture_warnings() as warnings:
 
-                self.environment_config = EnvironmentConfig()
-                self.environment_config.read_json(filepath)
+                config = EnvironmentConfig()
+                config.read_json(filepath)
+                self.set_env(config)
                 
             if warnings:
                 string = "Warnings encountered while loading configuration file:"
@@ -161,7 +172,7 @@ class RunTestGUI(QWidget):
 
 
 
-    def _load_test_json(self):
+    def _load_test_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Test Config JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
@@ -170,8 +181,9 @@ class RunTestGUI(QWidget):
 
             with capture_warnings() as warnings:
 
-                self.test_config = TestConfig()
-                self.test_config.read_json(filepath)
+                config = TestConfig()
+                config.read_json(filepath)
+                self.set_test(config)
                 
             if warnings:
                 string = "Warnings encountered while loading configuration file:"

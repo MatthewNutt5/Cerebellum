@@ -57,9 +57,9 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
         logging.info("All devices initialized successfully.")
         logging.info("Verify the credentials appear as expected before continuing to event execution.")
         get_input("Press Enter to continue...")
-        logging.info("")
 
         # Execute all events
+        logging.info("")
         logging.info("Executing events ==========")
         _exec_events(settings.event_list, device_list)
 
@@ -75,7 +75,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     except Exception as e:
 
         print()
-        logging.basicConfig(format="%(levelname)s: %(message)s")
+        logging.basicConfig(format="%(levelname)s: %(message)s", force=True)
         logging.error(f"During the testing routine, an exception was encountered: {e}")
         logging.error(f"Aborting testing routine.")
         pass
@@ -152,17 +152,17 @@ def _shutdown(shutdown_order: list[int], device_list: list[Device]):
 
 
 
-# Simple contextmanager to tab logging format during a subprocess
+# Simple contextmanager to tab logging format during an event
 @contextmanager
 def tab_logging():
 
-    # Tab with four spaces
-    logging.basicConfig(format="%(levelname)s:     %(message)s")
+    # Tab two spaces
+    logging.basicConfig(format="%(levelname)s:     %(message)s", force=True)
 
     yield
     
     # Return formatting to default
-    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.basicConfig(format="%(levelname)s: %(message)s", force=True)
 
 
 

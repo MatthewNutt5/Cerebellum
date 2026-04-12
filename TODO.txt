@@ -4,12 +4,6 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
-- Consider reorganizing Event into a subpackage to make adding new Events easier
-    - For instance, start with a base Event module that includes the abstract
-        classes and device-less events, then have another module for PowerSupply
-        Events, one for RB events, etc.
-    - This way, users can simply add new modules as needed, instead of having
-        to update the monolithic Event.py file
 
 Key Features ==========
 
@@ -24,11 +18,6 @@ Key Features ==========
     - Allows for reading and writing to/from pins
     - Could be used to trigger interlocks, read voltages, etc.
     - Would have implementations like PowerSupply
-- Add Oscilloscope device
-    - Allows for waveform retrieval
-    - Would have implementations like PowerSupply
-- Add Wiener crate support through the AnaGate (as a PowerSupply)
-    - Use AnaGate dll to send/receive CAN commands
 
 QoL Features ==========
 
@@ -49,3 +38,8 @@ QoL Features ==========
 - Add log-to-file
 - Fix QComboBox flickering
 - Test progress bar
+- Add Oscilloscope device
+    - Allows for waveform retrieval
+    - Would have implementations like PowerSupply
+- Add Wiener crate support through the AnaGate (as a PowerSupply)
+    - Use AnaGate dll to send/receive CAN commands

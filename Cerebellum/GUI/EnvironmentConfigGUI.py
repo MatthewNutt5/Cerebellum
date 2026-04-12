@@ -238,7 +238,20 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-    def get_env_config(self) -> EnvironmentConfig:
+    def set_env(self, config: EnvironmentConfig) -> None:
+
+        # Clear current UI
+        for widget in self.device_widgets:
+            self._remove_device_widget(widget, False)
+        self.device_widgets.clear()
+
+        # Populate UI
+        for device in config.device_config_list:
+            self._add_device_widget(device)
+
+
+
+    def get_env(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
         for widget in self.device_widgets:
             config.device_config_list.append(widget.get_device_config())
@@ -273,15 +286,7 @@ class EnvironmentConfigGUI(QWidget):
 
                 config = EnvironmentConfig()
                 config.read_json(filepath)
-
-                # Clear current UI
-                for widget in self.device_widgets:
-                    self._remove_device_widget(widget, False)
-                self.device_widgets.clear()
-
-                # Populate UI
-                for device in config.device_config_list:
-                    self._add_device_widget(device)
+                self.set_env(config)
 
             if warnings:
                 string = "Warnings encountered while loading configuration file:"
@@ -302,7 +307,7 @@ class EnvironmentConfigGUI(QWidget):
             return
 
         try:
-            self.get_env_config().write_json(filepath)
+            self.get_env().write_json(filepath)
             QMessageBox.information(self, "Success", f"Successfully saved configuration file.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save configuration file:\n{e}")

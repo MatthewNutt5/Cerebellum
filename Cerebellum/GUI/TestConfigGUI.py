@@ -286,15 +286,33 @@ class TestConfigGUI(QWidget):
 
 
 
-    def get_test_config(self) -> TestConfig:
+    def set_test(self, config: TestConfig) -> None:
+
+        # Clear current UI
+        for widget in self.event_widgets:
+            self._remove_event_widget(widget, False)
+        self.event_widgets.clear()
+
+        # Populate UI
+        for event in config.event_list:
+            self._add_event_widget(event)
+
+
+    def get_test(self) -> TestConfig:
         config = TestConfig()
         for widget in self.event_widgets:
             config.event_list.append(widget.get_event())
         return config
+    
+
+
+    def set_env(self, config: EnvironmentConfig) -> None:
+        self.device_config_list = config.device_config_list
+        self._update_devices()
 
 
 
-    def _update_devices(self):
+    def _update_devices(self) -> None:
         for w in self.event_widgets:
             w.set_device_list(self.device_config_list)
             w.update_devices()
@@ -328,15 +346,7 @@ class TestConfigGUI(QWidget):
 
                 config = TestConfig()
                 config.read_json(filepath)
-
-                # Clear current UI
-                for widget in self.event_widgets:
-                    self._remove_event_widget(widget, False)
-                self.event_widgets.clear()
-
-                # Populate UI
-                for event in config.event_list:
-                    self._add_event_widget(event)
+                self.set_test(config)
 
             if warnings:
                 string = "Warnings encountered while loading configuration file:"
@@ -357,14 +367,14 @@ class TestConfigGUI(QWidget):
             return
 
         try:
-            self.get_test_config().write_json(filepath)
+            self.get_test().write_json(filepath)
             QMessageBox.information(self, "Success", f"Successfully saved configuration file.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save configuration file:\n{e}")
 
 
     
-    def _load_env_json(self):
+    def _load_env_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
             return
@@ -375,8 +385,7 @@ class TestConfigGUI(QWidget):
 
                 config = EnvironmentConfig()
                 config.read_json(filepath)
-                self.device_config_list = config.device_config_list
-                self._update_devices()
+                self.set_env(config)
 
             if warnings:
                 string = "Warnings encountered while loading configuration file:"
