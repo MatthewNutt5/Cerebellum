@@ -6,9 +6,9 @@ from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Controller import run_test
 
 env_config = EnvironmentConfig()
-env_config.read_json("env_config.json")
+env_config.read_json(f"{ABS_DIR}/env_config.json")
 
 test_config = TestConfig()
-test_config.read_json("test_config.json")
+test_config.read_json(f"{ABS_DIR}/test_config.json")
 
 run_test(env_config, test_config)

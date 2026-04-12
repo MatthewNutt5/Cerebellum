@@ -107,8 +107,8 @@ class RunTestGUI(QWidget):
 
     def _stop_test(self):
         if self.process:
-            self.process.terminate()
-    
+            self.process.write(b"STOP\n")
+
     def _handle_finish(self):
         self._log("Process has exited.")
         self.process = None

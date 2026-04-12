@@ -2,6 +2,7 @@
 Placeholder
 """
 
+from Cerebellum.stdinProcessing import get_input
 from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
@@ -143,7 +144,7 @@ class WaitEvent(Event):
 
     # Execute the event
     def exec(self) -> None:
-        input("Press Enter to continue...")
+        get_input("Press Enter to continue...")
 
 
 

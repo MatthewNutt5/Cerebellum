@@ -9,26 +9,17 @@ This file also contains several helper classes and functions.
 """
 
 from Cerebellum.Common import create_device
+from Cerebellum.stdinProcessing import stdin_listener, stop_event, get_input
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
-from Cerebellum.Event import *
+from Cerebellum.Event import Event, DeviceEvent
 from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply
 
-import logging, signal
+import logging, threading, signal
 from contextlib import contextmanager
 
-# Simple contextmanager to tab logging format during a subprocess
-@contextmanager
-def tab_logging():
-
-    # Tab with four spaces
-    logging.basicConfig(format="%(levelname)s:     %(message)s")
-
-    yield
-    
-    # Return formatting to default
-    logging.basicConfig(format="%(levelname)s: %(message)s")
+threading.Thread(target=stdin_listener, daemon=True).start()
 
 
 
@@ -48,7 +39,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
 
                 try:
                     _ = config.device_config_list[event.device_idx]
-                except IndexError as e:
+                except IndexError:
                     raise IndexError(f"Event #{idx} failed to verify: device_idx ({event.device_idx}) is out of range of the device list.")
                 
                 try:
@@ -65,7 +56,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
         # Report and wait for user input
         logging.info("All devices initialized successfully.")
         logging.info("Verify the credentials appear as expected before continuing to event execution.")
-        input("Press Enter to continue...")
+        get_input("Press Enter to continue...")
         logging.info("")
 
         # Execute all events
@@ -83,6 +74,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     # A BaseException (e.g. KeyboardInterrupt) will end the entire program
     except Exception as e:
 
+        print()
         logging.basicConfig(format="%(levelname)s: %(message)s")
         logging.error(f"During the testing routine, an exception was encountered: {e}")
         logging.error(f"Aborting testing routine.")
@@ -91,16 +83,12 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
     finally:
         with _DelayedInterrupt([signal.SIGINT, signal.SIGTERM]):
 
-            print()
-            logging.info("")
-
             # If device_list has been initialized (i.e. all PSUs were initialized), shutdown all of them
             if "device_list" not in locals():
                 logging.info("Device list has not been initialized. Skipping PSU shutdown.")
             else:
                 logging.info("Disabling PSUs ==========")
                 _shutdown(settings.shutdown_order, device_list)
-                logging.info("")
 
 
 
@@ -118,14 +106,19 @@ def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
 def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
     for idx, event in enumerate(event_list):
 
+        # Check if the message "STOP" is sent on stdin before running the next event in the loop
+        # If so, throw a RuntimeError
+        if stop_event.is_set():
+            raise RuntimeError("Received message on stdin to abort the testing routine.")
+
         logging.info(f"Executing event #{idx} ----------")
         with tab_logging():
             logging.info(f"{event.__class__.__name__}: {event.comment}")
 
-        if isinstance(event, DeviceEvent):
-            event.exec(device_list[event.device_idx])
-        else:
-            event.exec()
+            if isinstance(event, DeviceEvent):
+                event.exec(device_list[event.device_idx])
+            else:
+                event.exec()
 
 
 
@@ -159,10 +152,21 @@ def _shutdown(shutdown_order: list[int], device_list: list[Device]):
 
 
 
-"""
-Interrupt Delayer ==============================================================
-"""
+# Simple contextmanager to tab logging format during a subprocess
+@contextmanager
+def tab_logging():
 
+    # Tab with four spaces
+    logging.basicConfig(format="%(levelname)s:     %(message)s")
+
+    yield
+    
+    # Return formatting to default
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+
+
+
+# Interrupt Delayer
 # Adapted from https://gist.github.com/tcwalther/ae058c64d5d9078a9f333913718bba95
 class _DelayedInterrupt(object):
     def __init__(self, signals):
