@@ -2,6 +2,13 @@
 Placeholder
 """
 
+import sys, os
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# If running this GUI as a standalone window, add Cerebellum to import path
+if __name__ == "__main__":
+    sys.path.append(f"{ABS_DIR}/../../") # Cerebellum parent directory
+
 from Cerebellum.Common import DEVICE_CONFIGS
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.Device.Device import DeviceConfig
@@ -14,7 +21,12 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import sys, serial.tools.list_ports
+
+SERIAL_AVAIL = True
+try:
+    import serial.tools.list_ports
+except:
+    SERIAL_AVAIL = False
 
 
 
@@ -173,7 +185,7 @@ class DeviceConfigWidget(QGroupBox):
                 
             # Special case
             # If a field is called "com", overwrite the widget with a ComboBox that retrieves all COM ports of the computer
-            if (field_name == "com"):
+            if SERIAL_AVAIL and (field_name == "com"):
                 field_edit = QComboBox()
                 field_edit.setEditable(True) # Set editable so that the field won't ignore a loaded value
                 items = [port.name for port in serial.tools.list_ports.comports()]
@@ -314,8 +326,8 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
-# Run the GUI as a standalone window
-def env_cfg_gui() -> None:
+# Run this Python file to test the GUI in a standalone window
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Environment Config Editor")

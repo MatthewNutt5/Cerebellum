@@ -2,13 +2,18 @@
 Placeholder
 """
 
+import sys, os
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# If running this GUI as a standalone window, add Cerebellum to import path
+if __name__ == "__main__":
+    sys.path.append(f"{ABS_DIR}/../../") # Cerebellum parent directory
+
 from Cerebellum.GUI.EnvironmentConfigGUI import EnvironmentConfigGUI
 from Cerebellum.GUI.TestConfigGUI import TestConfigGUI
 from Cerebellum.GUI.RunTestGUI import RunTestGUI
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
-
-import sys
 
 
 
@@ -49,8 +54,8 @@ class MainGUI(QMainWindow):
 
 
 
-# Run the GUI as a standalone window
-def main_gui() -> None:
+# Run this Python file to test the GUI in a standalone window
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainGUI()
     window.show()

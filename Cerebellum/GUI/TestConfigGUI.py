@@ -2,6 +2,13 @@
 Placeholder
 """
 
+import sys, os
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# If running this GUI as a standalone window, add Cerebellum to import path
+if __name__ == "__main__":
+    sys.path.append(f"{ABS_DIR}/../../") # Cerebellum parent directory
+
 from Cerebellum.Common import EVENTS
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
@@ -16,7 +23,6 @@ from PySide6.QtWidgets import  (QApplication, QMainWindow,
 from PySide6.QtCore import Qt
 
 from typing import Any
-import sys
 
 
 
@@ -400,8 +406,8 @@ class TestConfigGUI(QWidget):
 
 
 
-# Run the GUI as a standalone window
-def test_cfg_gui() -> None:
+# Run this Python file to test the GUI in a standalone window
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Test Config Editor")

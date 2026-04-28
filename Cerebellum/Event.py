@@ -2,7 +2,7 @@
 Placeholder
 """
 
-from Cerebellum.stdinProcessing import get_input
+from Cerebellum.InputProcessing import get_input
 from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 

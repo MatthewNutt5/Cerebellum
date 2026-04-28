@@ -1,7 +1,8 @@
 # Custom blacklist ==========
-# Ignore all json, except for those in configs
+# Ignore all JSONs, except for those in example
+# Only example JSONs should be tracked
 *.json
-!configs/*.json
+!example/*.json
 
 # GitHub Python template ==========
 # Byte-compiled / optimized / DLL files

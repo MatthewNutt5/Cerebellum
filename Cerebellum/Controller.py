@@ -9,7 +9,7 @@ This file also contains several helper classes and functions.
 """
 
 from Cerebellum.Common import create_device
-from Cerebellum.stdinProcessing import stdin_listener, stop_event, get_input
+from Cerebellum.InputProcessing import stdin_listener, stop_event, get_input
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
 from Cerebellum.Event import Event, DeviceEvent

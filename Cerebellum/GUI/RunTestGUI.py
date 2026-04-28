@@ -2,19 +2,22 @@
 Placeholder
 """
 
-from Cerebellum.GUI.Common import capture_warnings, logging_to_box
+import sys, os
+ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# If running this GUI as a standalone window, add Cerebellum to import path
+if __name__ == "__main__":
+    sys.path.append(f"{ABS_DIR}/../../") # Cerebellum parent directory
+
+from Cerebellum.GUI.Common import capture_warnings
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
-from Cerebellum.Controller import run_test
 
 from PySide6.QtWidgets import  (QApplication, QMainWindow,
                                 QWidget, QScrollArea, QGroupBox, QVBoxLayout, QHBoxLayout,
                                 QPushButton, QFileDialog, QMessageBox, QLabel,
                                 QPlainTextEdit, QLineEdit)
 from PySide6.QtCore import QProcess
-
-import sys, os
-ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 
@@ -99,8 +102,8 @@ class RunTestGUI(QWidget):
             return
         
         # Write configs to temp JSONs
-        self.environment_config.write_json(f"{ABS_DIR}/temp_env.json")
-        self.test_config.write_json(f"{ABS_DIR}/temp_test.json")
+        self.environment_config.write_json(f"{ABS_DIR}/../temp_env.json")
+        self.test_config.write_json(f"{ABS_DIR}/../temp_test.json")
         
         # Clear log box
         self.log_box.clear()
@@ -111,7 +114,7 @@ class RunTestGUI(QWidget):
         self.process.finished.connect(self._handle_finish)
         self.process.readyReadStandardOutput.connect(self._handle_stdout)
         self.process.readyReadStandardError.connect(self._handle_stderr)
-        self.process.start("python", [f"{ABS_DIR}/run_cerebellum_test.py"])
+        self.process.start("python", [f"{ABS_DIR}/../_run_test.py"])
 
 
 
@@ -123,8 +126,8 @@ class RunTestGUI(QWidget):
         self._log("\nProcess has exited.")
         self.process = None
         try:
-            os.remove(f"{ABS_DIR}/temp_env.json")
-            os.remove(f"{ABS_DIR}/temp_test.json")
+            os.remove(f"{ABS_DIR}/../temp_env.json")
+            os.remove(f"{ABS_DIR}/../temp_test.json")
         except:
             pass
 
@@ -198,8 +201,8 @@ class RunTestGUI(QWidget):
 
 
 
-# Run the GUI as a standalone window
-def run_test_gui() -> None:
+# Run this Python file to test the GUI in a standalone window
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QMainWindow()
     window.setWindowTitle("Run Test")
