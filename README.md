@@ -53,16 +53,26 @@ git clone -b RBF6v1_RiceTestBoard https://gitlab.cern.ch/tahuang/module_test_sw.
 To launch the Cerebellum GUI, run `/Cerebellum/GUI/MainGUI.py` with Python. _A simplified executable is intended for future development._
 
 ```
-python3 .\Cerebellum\GUI\MainGUI.py
+python3 ./Cerebellum/GUI/MainGUI.py
 ```
 
 ### Configuring Devices
 
-In the "Environment Config" GUI tab, press the "Add Device Config" button at the bottom to add a new device. Once the config has been added, use the dropdown menu at the top of the config to select which device you wish to configure (e.g. `SCPIPowerSupply` or `TamaleroReadoutBoard`). When a device type is selected, its fields will appear below the dropdown menu. Fill out the fields with the configuration data (e.g. IP address), and your device is ready for use!
+In the "Environment Config" GUI tab, press the "Add Device Config" button at the bottom to add a new device. Once the config has been added, use the dropdown menu at the top of the config to select which device to configure (e.g. `SCPIPowerSupply`, `TamaleroReadoutBoard`). When a device type is selected, the config box will update with its corresponding configuration fields (e.g. IP address, COM port). Fill out the fields with the environment's information, and the device will be ready for use.
+
+Configurations can be saved in a JSON file with the "Save JSON" button, and later loaded with the "Load JSON" button. Since the GUI resets when closed, this is necessary for preserving any existing configurations.
 
 ### Building a Program
 
+Next, in the "Test Config" GUI tab, press the "Add Event" button at the bottom to add a new event. As with devices, a dropdown menu at the top of each event is used to select the event type, and the event's fields can then be filled in. Any event that uses a device will have a "Device Index" field that is automatically populated with a dropdown menu containing the currently-configured devices. This helps with matching events to devices - if there is a mismatch, it will be reported in a verification step later.
+
+Test programs can also be saved/loaded with JSON files.
+
 ### Running the Program
+
+Finally, in the "Run Test" GUI tab, press the "Start Test" button to initiate the test currently configured in the GUI. The test will begin in a subprocess that will report its output to the GUI. First, Cerebellum will initialize its device types and report any malfunctions (e.g. if a device is unavailable due to missing libraries). Then, it will verify the event list, checking that every event uses the correct device type, and connect to all configured devices. Cerebellum will then pause to let the user check device credentials - press Enter in the input box at the bottom of the window to continue.
+
+After the checkpoint is passed, Cerebellum will execute the events configured in the Test Config. Each event will report its status, including any pass/fail results or errors during execution. If a fatal error is encountered (e.g. lost connection to a device), the test will abort early. The user can also manually abort the test with the "Stop Test" button. (Note: The Stop command will only take effect at the start of the next event.) Finally, whether the test ended successfully or was prematurely aborted, Cerebellum will shut down all power supplies (i.e. devices that are subclasses of `PowerSupply`).
 
 <!-- Under Construction
 
