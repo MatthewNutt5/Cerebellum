@@ -6,7 +6,7 @@ Currently, Cerebellum supports the following devices:
 
 - SCPI Power Supplies
 - CAEN Power Supplies
-- LHC CMS ETL Readout Boards
+- ETL Readout Boards
 
 Cerebellum features a high degree of extensibility. Any new device can be integrated with the modification of just two Python files - the system will automatically 
 incorporate the new device and its events, including the generation of custom GUI units.
@@ -19,7 +19,7 @@ Led by Dr. Frank Geurts, the Rice Heavy Ion Group at Rice University's Departmen
 Cerebellum was originally designed for verifying RBs; setting power supplies, reading data from the RB, and returning with a pass/fail. However, Cerebellum is by no means limited to this use case. Any user can easily extend the software for their own needs and streamline their lab environment.
 
 ### Installation
-Start by cloning the source code into a local directory. _Future plans include a pre-compiled installation._
+Start by cloning the source code into a local directory. _A pre-compiled installation is intended for future development._
 
 ```
 git clone https://github.com/MatthewNutt5/Cerebellum.git
@@ -28,7 +28,7 @@ git clone https://github.com/MatthewNutt5/Cerebellum.git
 Cerebellum requires Python 3.12+. The core system doesn't require any additional installation, but extra steps are necessary for each of the devices included in the repository:
 
 #### `SCPIPowerSupply`
-The libraries for `SCPIPowerSupply` can be installed through pip:
+The libraries for `SCPIPowerSupply` can be installed through pip. (Additionally, installing `pyserial` will permit the GUI to automatically populate any device field named `com` with a dropdown of available COM ports.)
 
 ```
 pip install pyserial socketscpi
@@ -48,13 +48,23 @@ The version of the interface currently used to control readout boards comes from
 git clone -b RBF6v1_RiceTestBoard https://gitlab.cern.ch/tahuang/module_test_sw.git
 ```
 
-<!-- Under Construction
-
 ## Using Cerebellum
+
+To launch the Cerebellum GUI, run `/Cerebellum/GUI/MainGUI.py` with Python. _A simplified executable is intended for future development._
+
+```
+python3 .\Cerebellum\GUI\MainGUI.py
+```
 
 ### Configuring Devices
 
+In the "Environment Config" GUI tab, press the "Add Device Config" button at the bottom to add a new device. Once the config has been added, use the dropdown menu at the top of the config to select which device you wish to configure (e.g. `SCPIPowerSupply` or `TamaleroReadoutBoard`). When a device type is selected, its fields will appear below the dropdown menu. Fill out the fields with the configuration data (e.g. IP address), and your device is ready for use!
+
 ### Building a Program
+
+### Running the Program
+
+<!-- Under Construction
 
 ## Extending Cerebellum
 
