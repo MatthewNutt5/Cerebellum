@@ -1,5 +1,5 @@
 from typing import Any
-from Cerebellum.Device import Device, DeviceConfig
+from Cerebellum.Device.Device import Device, DeviceConfig
 from tamalero.ReadoutBoard import ReadoutBoard
 from tamalero.utils import get_kcu
 
