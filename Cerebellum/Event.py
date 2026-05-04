@@ -4,13 +4,17 @@ Placeholder
 
 from Cerebellum.Device.Device import Device, DeviceConfig
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
-from Cerebellum.Device.TamaleroReadoutBoard import TamaleroReadoutBoard, TamaleroReadoutBoardConfig
 
 from abc import ABC, abstractmethod
 from typing import Any
-import logging, time, subprocess, random
+import logging, time, subprocess
 
-
+TAMALERO_AVAIL = True
+try:
+    from Cerebellum.Device.TamaleroReadoutBoard import TamaleroReadoutBoard, TamaleroReadoutBoardConfig
+except Exception as e:
+    logging.warning(f"TamaleroReadoutBoard failed to import, skipping RBEvents...")
+    TAMALERO_AVAIL = False
 
 """
 Event Interface ================================================================
@@ -356,129 +360,127 @@ class EvalPSUPowerEvent(PowerSupplyEvent):
 
 
 
+"""
+TamaleroReadoutBoard Events ====================================================
+"""
 
+if TAMALERO_AVAIL:
 
+    # --- RBEvent: An Event that requires a TamaleroReadoutBoard device
+    class RBEvent(DeviceEvent):
 
-# --- RBEvent: An Event that requires a TamaleroReadoutBoard device
-class RBEvent(DeviceEvent):
-
-    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
-    # Any field without a corresponding field_title will default to the field name
-    
-    # *_options = Options for field to provide in a dropdown menu
-    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
-
-    # Either init with default values or init with input fields (read from JSON)
-    @abstractmethod
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-
-    # Execute the event
-    @abstractmethod
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        pass
-
-    # Check that the given config is actually a TamaleroReadoutBoardConfig (in case an Event refers to the wrong device in device_config_list)
-    def verify(self, config: DeviceConfig) -> None:
-        if not isinstance(config, TamaleroReadoutBoardConfig):
-            raise TypeError(f"Cannot run a RBEvent on a non-RB Device; this Event likely has a faulty device_idx.")
+        # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+        # Any field without a corresponding field_title will default to the field name
         
-class RBReadADC(RBEvent):
+        # *_options = Options for field to provide in a dropdown menu
+        # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
-    #strict_limits     : str = "Strict limits"
-    
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-    
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        results = {}
+        # Either init with default values or init with input fields (read from JSON)
+        @abstractmethod
+        def __init__(self, vars_dict: dict[str, Any] = {}):
+            if vars_dict:
+                vars(self).update(vars_dict) # Install input into __dict__
+            else:
+                super().__init__() # Inits comment and device_idx
+
+        # Execute the event
+        @abstractmethod
+        def exec(self, rb: TamaleroReadoutBoard) -> None:
+            pass
+
+        # Check that the given config is actually a TamaleroReadoutBoardConfig (in case an Event refers to the wrong device in device_config_list)
+        def verify(self, config: DeviceConfig) -> None:
+            if not isinstance(config, TamaleroReadoutBoardConfig):
+                raise TypeError(f"Cannot run a RBEvent on a non-RB Device; this Event likely has a faulty device_idx.")
+
+
+
+    # --- RBReadADC: Read ADCs of all onboard chips
+    class RBReadADC(RBEvent):
         
-        if rb.rb.ver < 3 and self.config.flavor == 'small':
-            results['SCA'] = rb.rb.SCA.read_adcs(check=True, strict_limits=False)
-            
-        results['DAQ_LPGBT'] = rb.rb.DAQ_LPGBT.read_adcs(check=True, strict_limits=False)
+        # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+        # Any field without a corresponding field_title will default to the field name
         
-        if rb.rb.trigger:
-            results['TRIG_LPGBT'] = rb.rb.TRIG_LPGBT.read_adcs(check=True, strict_limits=False)
-            
-        if hasattr(rb.rb, "MUX64"):
-            results['MUX64'] = rb.rb.MUX64.read_channels()
-            
-        results['temp'] = rb.rb.read_temp(verbose=False)
-        logging.info(f"RB ADC Readings Complete.")
+        # *_options = Options for field to provide in a dropdown menu
+        # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
 
-class RBRunEyescan(RBEvent):
-
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-    
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        logging.info(f"RB ADC Readings: {rb.rb.DAQ_LPGBT.eyescan()}")
-
-class RBResetPatternChecker(RBEvent):
-
-    data_src     : str = "Data Source"
-
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-    
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        rb.rb.DAQ_LPGBT.set_uplink_group_data_source("normal")
-        rb.rb.DAQ_LPGBT.set_downlink_data_src(self.data_src)
-        time.sleep(0.1)
-        rb.rb.DAQ_LPGBT.reset_pattern_checkers()
-        time.sleep(0.1)
-        logging.info(f"RB Pattern Checker Reset.")
-
-class RBReadPatternChecker(RBEvent):
-
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-    
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        time.sleep(1)
-        rb.rb.DAQ_LPGBT.read_pattern_checkers()
-        logging.info(f"RB Pattern Checker Readings Complete.")
-
-
-class RBTestSCAI2C(RBEvent):
-
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-    
-    def exec(self, rb: TamaleroReadoutBoard) -> None:
-        results = {'single_byte': [], 'multi_byte': False}
+        # Either init with default values or init with input fields (read from JSON)
+        def __init__(self, vars_dict: dict[str, Any] = {}):
+            if vars_dict:
+                vars(self).update(vars_dict) # Install input into __dict__
+            else:
+                super().__init__() # Inits comment and device_idx
         
-        for n in range(10):
-            wr = random.randint(0, 100)
-            rb.rb.SCA.I2C_write_ctrl(channel=self.test_channel, data=wr)
-            rd = rb.rb.SCA.I2C_read_ctrl(channel=self.test_channel)
-            results['single_byte'].append((wr, rd))
-            
-        write_value = [0x2, 25, (27&240)]
-        rb.rb.SCA.I2C_write_multi(write_value, channel=self.test_channel, servant=0x48)
-        read_value = rb.rb.SCA.I2C_read_multi(channel=self.test_channel, servant=0x48, nbytes=2, reg=0x2)
+        # Execute the event
+        def exec(self, rb: TamaleroReadoutBoard) -> None:
+            logging.info(f"RB ADC readings: {rb.read_adcs()}")
+
+
+
+    # --- RBReadADC: Run built-in eyescan test on LPGBT ADCs
+    class RBRunEyescan(RBEvent):
+
+        # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+        # Any field without a corresponding field_title will default to the field name
         
-        if read_value == write_value[1:]:
-            results['multi_byte'] = True
-            
-        logging.info(f"RB SCA I2C Test Results: {results}")
-        #logging.info(f"RB SCA I2C Test Results: UNIMPLEMENTED")
+        # *_options = Options for field to provide in a dropdown menu
+        # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
+        # Either init with default values or init with input fields (read from JSON)
+        def __init__(self, vars_dict: dict[str, Any] = {}):
+            if vars_dict:
+                vars(self).update(vars_dict) # Install input into __dict__
+            else:
+                super().__init__() # Inits comment and device_idx
+        
+        # Execute the event
+        def exec(self, rb: TamaleroReadoutBoard) -> None:
+            rb.run_eyescan()
+            logging.info(f"RB LPGBT ADC eyescan test complete.")
+
+
+
+    # --- RBReadPatternCheckers: Reset then read LPGBT pattern checkers
+    class RBReadPatternCheckers(RBEvent):
+        
+        # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+        # Any field without a corresponding field_title will default to the field name
+        
+        # *_options = Options for field to provide in a dropdown menu
+        # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
+        # Either init with default values or init with input fields (read from JSON)
+        def __init__(self, vars_dict: dict[str, Any] = {}):
+            if vars_dict:
+                vars(self).update(vars_dict) # Install input into __dict__
+            else:
+                super().__init__() # Inits comment and device_idx
+        
+        # Execute the event
+        def exec(self, rb: TamaleroReadoutBoard) -> None:
+            time.sleep(1)
+            logging.info(f"RB LPGBT pattern checker readings: {rb.read_pattern_checkers()}")
+
+
+
+    # --- RBTestSCAI2C: Test I2C port of SCA chip
+    class RBTestSCAI2C(RBEvent):
+
+        # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+        # Any field without a corresponding field_title will default to the field name
+        test_channel_title: str = "Test Channel"
+        
+        # *_options = Options for field to provide in a dropdown menu
+        # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
+        # Either init with default values or init with input fields (read from JSON)
+        def __init__(self, vars_dict: dict[str, Any] = {}):
+            if vars_dict:
+                vars(self).update(vars_dict) # Install input into __dict__
+            else:
+                super().__init__() # Inits comment and device_idx
+                self.test_channel: int = 0
+        
+        # Execute the event
+        def exec(self, rb: TamaleroReadoutBoard) -> None:
+            logging.info(f"RB SCA I2C test results: {rb.test_sca_i2c(self.test_channel)}")

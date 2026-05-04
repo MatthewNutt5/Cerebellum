@@ -2,22 +2,22 @@ Fixes/Refactors ==========
 
 - Add more comments and update existing ones
 - Write a README with details on:
-    - Standard GUI operation
     - Custom implementations of devices, power supplies, and events
+- configure_board: Only defined, never used...?
+- Currently, SetPSUEvents can be used at the end of a test program to
+    shutdown in order - should shutdown_order be abolished and automated
+    shutdown only be done for any power supply not already shutdown?
+- Improve backwards compatibility (would be great to run this on 3.9)
+- Tamalero is an absolute pain - you don't just have to install the libraries
+    and import them, you have to add stuff to PATH with a setup script, have
+    local directories for it to crap out result files... is there anything
+    we can do to simplify that?
 
 Key Features ==========
 
-- Move shutdown_order to EnvironmentConfig and add to GUI
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?
-- Add ReadoutBoard device
-    - At first, the idea was to use external scripts, but Cerebellum is built
-        for testing readout boards! Why should that be an ad-hoc feature?
-- Add MCU (microcontroller) device
-    - Allows for reading and writing to/from pins
-    - Could be used to trigger interlocks, read voltages, etc.
-    - Would have implementations like PowerSupply
 
 QoL Features ==========
 
@@ -30,14 +30,16 @@ QoL Features ==========
         What if they get a TestConfig from someone else with a different setup?
 - Persistence of GUI state
 - Test preferences
-    - Verbosity level, runtime error behavior, log to file, save test results to
-        file, 
+    - Verbosity level, runtime error behavior, save test results to file
 - Pause on exception in run_test instead of immediate test abort
     - Could have an (Ignore) / Pause / Abort option in preferences
-- Add PSU dependencies (e.g. PSU X must be enabled before PSU Y)
 - Add log-to-file
 - Fix QComboBox flickering
 - Test progress bar
+- Add MCU (microcontroller) device
+    - Allows for reading and writing to/from pins
+    - Could be used to trigger interlocks, read voltages, etc.
+    - Would have implementations like PowerSupply
 - Add Oscilloscope device
     - Allows for waveform retrieval
     - Would have implementations like PowerSupply
