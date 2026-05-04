@@ -108,7 +108,7 @@ class PowerSupply(Device):
     def get_channel_state(self, channel: int) -> bool:
         pass
     
-    # Shutdown all channels
+    # Shutdown (i.e. disable, not disconnect) the device
     @abstractmethod
     def shutdown(self) -> None:
         pass

@@ -40,7 +40,7 @@ class CAENPowerSupplyConfig(PowerSupplyConfig):
     ]
     link_type_options = [
         "TCPIP"
-        # Possible, but not supported: "RS232", "CAENET", "USB", "OPTLINK", "USB_VCP", "USB3", "A4818"
+        # Possible, but not currently implemented: "RS232", "CAENET", "USB", "OPTLINK", "USB_VCP", "USB3", "A4818"
     ]
 
     # Either init with default values or init with input fields (read from JSON)
@@ -145,7 +145,7 @@ class CAENPowerSupply(PowerSupply):
     def get_channel_state(self, channel: int) -> bool:
         return bool(self._get_channel_parameter(channel, 'Pw'))
     
-    # Shutdown all channels
+    # Shutdown (i.e. disable, not disconnect) the device
     def shutdown(self) -> None:
         for channel in range(self.board.n_channel):
             self.disable_channel(channel)

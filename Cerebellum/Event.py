@@ -458,7 +458,6 @@ if TAMALERO_AVAIL:
         
         # Execute the event
         def exec(self, rb: TamaleroReadoutBoard) -> None:
-            time.sleep(1)
             logging.info(f"RB LPGBT pattern checker readings: {rb.read_pattern_checkers()}")
 
 

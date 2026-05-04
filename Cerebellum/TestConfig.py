@@ -24,7 +24,6 @@ class TestConfig:
     def __init__(self):
 
         self.event_list     : list[Event]   = []    # List of Event objects to be executed during the test
-        self.shutdown_order : list[int]     = []    # List of Device indices specifying the shutdown order for PSUs
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 

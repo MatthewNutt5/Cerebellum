@@ -46,3 +46,8 @@ class Device(ABC):
     @abstractmethod
     def get_id(self) -> str:
         pass
+
+    # Shutdown (i.e. disable, not disconnect) the device
+    @abstractmethod
+    def shutdown(self) -> None:
+        pass

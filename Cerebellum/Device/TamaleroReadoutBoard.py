@@ -44,6 +44,10 @@ class TamaleroReadoutBoardConfig(DeviceConfig):
 
 
 class TamaleroReadoutBoard(Device):
+
+    """
+    Interface Methods ======================================================
+    """
     
     # Initialize connection, possibly log ID
     def __init__(self, config: TamaleroReadoutBoardConfig):
@@ -87,6 +91,16 @@ class TamaleroReadoutBoard(Device):
             except Exception:
                 pass
         return f"Tamalero RB #{self.config.rb_index}, Flavor: {self.config.flavor})"
+    
+    # Shutdown (i.e. disable, not disconnect) the device
+    def shutdown(self) -> None:
+        pass
+
+
+
+    """
+    Helper Methods =========================================================
+    """
     
     # NOTE: Only defined, never used...? Should this run during init?
     def configure_board(self) -> None:

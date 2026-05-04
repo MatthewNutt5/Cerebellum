@@ -136,7 +136,7 @@ class SCPIPowerSupply(PowerSupply):
         self._write_scpi(f"INST:SEL {channel}\n")
         return bool(self._query_scpi(f"OUTP:STAT?\n"))
     
-    # Shutdown all channels
+    # Shutdown (i.e. disable, not disconnect) the device
     def shutdown(self) -> None:
         self._write_scpi(f"OUTP:ALL 0\n")
 
