@@ -12,7 +12,7 @@ object based on the input PSUConfig. For example, a config with an SCPI
 interface will be constructed as an SCPIPowerSupply.
 """
 
-# Prevents TypeError on type hints for Python 3.8 and 3.9
+# Prevents TypeError on type hints for Python 3.7 to 3.9
 from __future__ import annotations
 
 from Cerebellum.Device.Device import Device, DeviceConfig

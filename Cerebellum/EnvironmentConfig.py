@@ -10,7 +10,7 @@ This file also contains the PSUConfig class, which is a helper class used
 to specify the control configuration of a power supply in the test environment.
 """
 
-# Prevents TypeError on type hints for Python 3.8 and 3.9
+# Prevents TypeError on type hints for Python 3.7 to 3.9
 from __future__ import annotations
 
 from Cerebellum.Common import DEVICE_CONFIGS

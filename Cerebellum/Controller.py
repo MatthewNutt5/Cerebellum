@@ -8,7 +8,7 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
-# Prevents TypeError on type hints for Python 3.8 and 3.9
+# Prevents TypeError on type hints for Python 3.7 to 3.9
 from __future__ import annotations
 
 from Cerebellum.Common import create_device

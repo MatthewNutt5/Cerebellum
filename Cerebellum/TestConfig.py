@@ -11,7 +11,7 @@ class, which is a helper class used to specify an individual criterion the test
 should evaluate.
 """
 
-# Prevents TypeError on type hints for Python 3.8 and 3.9
+# Prevents TypeError on type hints for Python 3.7 to 3.9
 from __future__ import annotations
 
 from Cerebellum.Common import EVENTS

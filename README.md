@@ -25,7 +25,7 @@ Start by cloning the source code into a local directory. _A pre-compiled install
 git clone https://github.com/MatthewNutt5/Cerebellum.git
 ```
 
-Cerebellum requires Python 3.8+. The GUI uses the PySide6 module, which can be installed through pip:
+Cerebellum requires Python 3.7+. The GUI uses the PySide6 module, which can be installed through pip:
 
 ```
 pip install pyside6
