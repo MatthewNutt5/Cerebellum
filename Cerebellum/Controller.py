@@ -8,6 +8,9 @@ on the test environment specified by an EnvironmentConfig object.
 This file also contains several helper classes and functions.
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 from Cerebellum.Common import create_device
 from Cerebellum.InputProcessing import stdin_listener, stop_event, get_input
 from Cerebellum.EnvironmentConfig import EnvironmentConfig

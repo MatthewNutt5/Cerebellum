@@ -2,6 +2,9 @@
 Placeholder
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 import sys, os
 ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -102,7 +105,7 @@ class DeviceConfigWidget(QGroupBox):
                 field_value = field_edit.currentText()
             elif isinstance(field_edit, QCheckBox):
                 field_value = field_edit.isChecked()
-            elif isinstance(field_edit, (QSpinBox | QDoubleSpinBox)):
+            elif isinstance(field_edit, QSpinBox) or isinstance(field_edit, QDoubleSpinBox):
                 field_value = field_edit.value()
             elif isinstance(field_edit, QLineEdit):
                 field_value = field_edit.text()

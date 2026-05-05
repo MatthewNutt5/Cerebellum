@@ -2,6 +2,9 @@
 Placeholder
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 import Cerebellum.Device, Cerebellum.Event
 from Cerebellum.Device.Device import Device, DeviceConfig
 
@@ -28,9 +31,9 @@ for _, name, _ in pkgutil.walk_packages(Cerebellum.Device.__path__):
         DEVICE_CONFIGS[name] = constructor
     except Exception as e:
         if ("Can't instantiate abstract class" in str(e)): 
-            logging.info(f"Skipping abstract config constructor {module.__name__}.{name + "Config"}()...")
+            logging.info(f"Skipping abstract config constructor {module.__name__}.{name}Config()...")
         else:
-            logging.warning(f"Failed to verify config constructor {module.__name__}.{name + "Config"}(): {e}")
+            logging.warning(f"Failed to verify config constructor {module.__name__}.{name}Config(): {e}")
 
 # Find all modules in Device and get their Device constructors
 # Create a dict of [device class name, device constructor]

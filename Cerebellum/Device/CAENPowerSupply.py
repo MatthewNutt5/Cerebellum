@@ -10,6 +10,9 @@ PSUs. Each "slot" houses a "board", which has its own "channels" that power
 can be delivered from.
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 from Cerebellum.Device.PowerSupply import PowerSupply, PowerSupplyConfig
 
 from caen_libs import caenhvwrapper

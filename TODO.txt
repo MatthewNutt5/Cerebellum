@@ -4,7 +4,6 @@ Fixes/Refactors ==========
 - Write a README with details on:
     - Custom implementations of devices, power supplies, and events
 - configure_board: Only defined, never used...?
-- Improve backwards compatibility (would be great to run this on 3.9)
 - Tamalero is an absolute pain - you don't just have to install the libraries
     and import them, you have to add stuff to PATH with a setup script, have
     local directories for it to crap out result files... is there anything

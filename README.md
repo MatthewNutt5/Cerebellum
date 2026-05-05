@@ -25,7 +25,13 @@ Start by cloning the source code into a local directory. _A pre-compiled install
 git clone https://github.com/MatthewNutt5/Cerebellum.git
 ```
 
-Cerebellum requires Python 3.12+. The core system doesn't require any additional installation, but extra steps are necessary for each of the devices included in the repository:
+Cerebellum requires Python 3.8+. The GUI uses the PySide6 module, which can be installed through pip:
+
+```
+pip install pyside6
+```
+
+Extra steps are also necessary for each of the devices included in the repository; skip any you do not wish to use.
 
 #### `SCPIPowerSupply`
 The libraries for `SCPIPowerSupply` can be installed through pip. (Additionally, installing `pyserial` will permit the GUI to automatically populate any device field named `com` with a dropdown of available COM ports.)
@@ -47,6 +53,8 @@ The version of the interface currently used to control readout boards comes from
 ```
 git clone -b RBF6v1_RiceTestBoard https://gitlab.cern.ch/tahuang/module_test_sw.git
 ```
+
+You will also need to `cd` into the repository and run `source setup.sh` in order to set up environment variables.
 
 ## Using Cerebellum
 

@@ -2,6 +2,9 @@
 Placeholder
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 import logging
 from contextlib import contextmanager
 

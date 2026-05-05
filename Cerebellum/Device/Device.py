@@ -2,6 +2,9 @@
 Placeholder
 """
 
+# Prevents TypeError on type hints for Python 3.8 and 3.9
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any
 
