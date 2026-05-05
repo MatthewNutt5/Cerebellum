@@ -4,7 +4,7 @@
             "display_name": "Low Voltage Power Supply",
             "protocol": "IP",
             "ip": "192.168.0.40",
-            "com": "COM7",
+            "com": "",
             "baudrate": 115200,
             "class_name": "SCPIPowerSupplyConfig"
         },
@@ -17,6 +17,16 @@
             "password": "",
             "board_slot": 0,
             "class_name": "CAENPowerSupplyConfig"
+        },
+        {
+            "display_name": "Readout Board",
+            "kcu_address": "192.168.0.10",
+            "host": "localhost",
+            "rb_index": 0,
+            "flavor": "medium",
+            "configuration": "default",
+            "etroc": "ETROC2",
+            "class_name": "TamaleroReadoutBoardConfig"
         }
     ],
     "class_name": "EnvironmentConfig"
