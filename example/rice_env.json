@@ -29,5 +29,10 @@
             "class_name": "TamaleroReadoutBoardConfig"
         }
     ],
+    "shutdown_order": [
+        2,
+        1,
+        0
+    ],
     "class_name": "EnvironmentConfig"
 }

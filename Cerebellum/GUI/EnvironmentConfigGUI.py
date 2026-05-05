@@ -233,6 +233,14 @@ class EnvironmentConfigGUI(QWidget):
         self.file_buttons_layout.addWidget(self.save_button)
         self.main_layout.addLayout(self.file_buttons_layout)
 
+        # Shutdown order
+        self.shutdown_order_layout = QHBoxLayout()
+        self.shutdown_order_label = QLabel("Shutdown Order:")
+        self.shutdown_order_edit = QLineEdit()
+        self.shutdown_order_layout.addWidget(self.shutdown_order_label)
+        self.shutdown_order_layout.addWidget(self.shutdown_order_edit)
+        self.main_layout.addLayout(self.shutdown_order_layout)
+
         # DeviceConfig scrollable list area
         self.device_scroll_area = QScrollArea()
         self.device_scroll_area.setWidgetResizable(True)
@@ -256,11 +264,13 @@ class EnvironmentConfigGUI(QWidget):
     def set_env(self, config: EnvironmentConfig) -> None:
 
         # Clear current UI
+        self.shutdown_order_edit.clear()
         for widget in self.device_widgets:
             self._remove_device_widget(widget, False)
         self.device_widgets.clear()
 
         # Populate UI
+        self.shutdown_order_edit.setText(str(config.shutdown_order)[1:-1])
         for device in config.device_config_list:
             self._add_device_widget(device)
 
@@ -268,6 +278,7 @@ class EnvironmentConfigGUI(QWidget):
 
     def get_env(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
+        config.shutdown_order = [int(elem) for elem in self.shutdown_order_edit.text().split(",")]
         for widget in self.device_widgets:
             config.device_config_list.append(widget.get_device_config())
         return config

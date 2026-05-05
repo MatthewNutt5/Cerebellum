@@ -29,23 +29,23 @@ threading.Thread(target=stdin_listener, daemon=True).start()
 Main Function + Helpers ========================================================
 """
 
-def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
+def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
     
     # Attempt to run the regular program sequence
     try:
         
         # Before anything, check that each DeviceEvent will refer to a device that exists and matches the type (e.g. PowerSupplyEvent)
         logging.info("Verifying event list ==========")
-        for idx, event in enumerate(settings.event_list):
+        for idx, event in enumerate(test.event_list):
             if isinstance(event, DeviceEvent):
 
                 try:
-                    _ = config.device_config_list[event.device_idx]
+                    _ = env.device_config_list[event.device_idx]
                 except IndexError:
                     raise IndexError(f"Event #{idx} failed to verify: device_idx ({event.device_idx}) is out of range of the device list.")
                 
                 try:
-                    event.verify(config.device_config_list[event.device_idx])
+                    event.verify(env.device_config_list[event.device_idx])
                 except Exception as e:
                     raise RuntimeError(f"Event #{idx} failed to verify: {e}")
                 
@@ -53,7 +53,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
 
         # Initialize all devices
         logging.info("Intializing devices ==========")
-        device_list = _init_device_list(config.device_config_list)
+        device_list = _init_device_list(env.device_config_list)
 
         # Report and wait for user input
         logging.info("All devices initialized successfully.")
@@ -63,7 +63,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
         # Execute all events
         logging.info("")
         logging.info("Executing events ==========")
-        _exec_events(settings.event_list, device_list)
+        _exec_events(test.event_list, device_list)
 
         # Report and wait for user input
         logging.info("")
@@ -90,7 +90,7 @@ def run_test(config: EnvironmentConfig, settings: TestConfig) -> None:
                 logging.info("Device list has not been initialized. Skipping shutdown sequence.")
             else:
                 logging.info("Shutting down devices ==========")
-                _shutdown(device_list)
+                _shutdown(env.shutdown_order, device_list)
 
 
 
@@ -126,14 +126,20 @@ def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
 
 
 
-def _shutdown(device_list: list[Device]):
+def _shutdown(shutdown_order: list[int], device_list: list[Device]):
 
-    for idx, device in enumerate(device_list):
+    # Create final_order, which is [shutdown_order, {rest of device indices, ascending}]
+    ascending_order = [dev_idx for dev_idx in list(range(len(device_list))) if dev_idx not in shutdown_order]
+    final_order = shutdown_order + ascending_order
+
+    # Shutdown the devices according to final_order
+    for dev_idx in final_order:
         try:
-            logging.info(f"Disabling device #{idx} ({device.config.display_name}) -----")
+            device = device_list[dev_idx]
+            logging.info(f"Disabling device #{dev_idx} ({device.config.display_name}) -----")
             device.shutdown()
         except Exception as e:
-            logging.error(f"While attemping to disable device #{idx} ({device.config.display_name}), an exception was encountered: {e}")
+            logging.error(f"While attemping to disable device #{dev_idx}, an exception was encountered: {e}")
             pass
 
 

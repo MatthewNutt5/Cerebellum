@@ -25,7 +25,6 @@ import logging
 class TestConfig:
 
     def __init__(self):
-
         self.event_list     : list[Event]   = []    # List of Event objects to be executed during the test
 
     """
