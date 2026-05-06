@@ -25,8 +25,9 @@ class EnvironmentConfig:
 
     def __init__(self):
 
-        self.device_config_list : list[DeviceConfig]    = [] # List of DeviceConfig objects to be constructed into device_list
-        self.shutdown_order     : list[int]             = [] # List of Device indices specifying the shutdown order upon test termination
+        self.device_config_list : list[DeviceConfig]    = []        # List of DeviceConfig objects to be constructed into device_list
+        self.python_path        : str                   = "python3" # Python path or alias to use for calling the test subprocess
+        self.shutdown_order     : list[int]             = []        # List of Device indices specifying the shutdown order upon test termination
 
     """
     Writes the contents of the object to the given filepath in the JSON format. 
@@ -64,6 +65,7 @@ class EnvironmentConfig:
             raise ValueError(f"Invalid {self.__class__.__name__} JSON file: class_name field is {json_class_name}, not {self.__class__.__name__}.")
         
         # Assign fields to JSON data
+        self.python_path = json_dict["python_path"]
         self.shutdown_order = json_dict["shutdown_order"]
 
         # Convert object dicts to objects

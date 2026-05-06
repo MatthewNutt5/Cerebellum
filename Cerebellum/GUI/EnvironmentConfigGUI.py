@@ -233,6 +233,15 @@ class EnvironmentConfigGUI(QWidget):
         self.file_buttons_layout.addWidget(self.save_button)
         self.main_layout.addLayout(self.file_buttons_layout)
 
+        # Python path
+        self.python_path_layout = QHBoxLayout()
+        self.python_path_label = QLabel("Python Path/Alias:")
+        self.python_path_edit = QLineEdit()
+        self.python_path_edit.setText("python3")
+        self.python_path_layout.addWidget(self.python_path_label)
+        self.python_path_layout.addWidget(self.python_path_edit)
+        self.main_layout.addLayout(self.python_path_layout)
+
         # Shutdown order
         self.shutdown_order_layout = QHBoxLayout()
         self.shutdown_order_label = QLabel("Shutdown Order:")
@@ -264,12 +273,14 @@ class EnvironmentConfigGUI(QWidget):
     def set_env(self, config: EnvironmentConfig) -> None:
 
         # Clear current UI
+        self.python_path_edit.clear()
         self.shutdown_order_edit.clear()
         for widget in self.device_widgets:
             self._remove_device_widget(widget, False)
         self.device_widgets.clear()
 
         # Populate UI
+        self.python_path_edit.setText(config.python_path)
         self.shutdown_order_edit.setText(str(config.shutdown_order)[1:-1])
         for device in config.device_config_list:
             self._add_device_widget(device)
@@ -278,6 +289,7 @@ class EnvironmentConfigGUI(QWidget):
 
     def get_env(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
+        config.python_path = self.python_path_edit.text()
         try:
             config.shutdown_order = [int(elem) for elem in self.shutdown_order_edit.text().split(",")]
         except:

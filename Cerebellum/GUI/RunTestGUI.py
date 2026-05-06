@@ -117,7 +117,7 @@ class RunTestGUI(QWidget):
         self.process.finished.connect(self._handle_finish)
         self.process.readyReadStandardOutput.connect(self._handle_stdout)
         self.process.readyReadStandardError.connect(self._handle_stderr)
-        self.process.start("python", [f"{ABS_DIR}/../_run_test.py"])
+        self.process.start(self.environment_config.python_path, [f"{ABS_DIR}/../_run_test.py"])
 
 
 
