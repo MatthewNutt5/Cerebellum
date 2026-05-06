@@ -79,6 +79,34 @@ class DeviceEvent(Event):
 
 
 
+# --- DeferredInitEvent: Initialize the device during this event, instead of the initialization phase
+class DeferredInitEvent(DeviceEvent):
+
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+    # Any field without a corresponding field_title will default to the field name
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
+    # Either init with default values or init with input fields (read from JSON)
+    def __init__(self, vars_dict: dict[str, Any] = {}):
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            super().__init__() # Inits comment and device_idx
+
+    # Execute the event
+    def exec(self, device: Device) -> None:
+        # This event doesn't actually exec the way other events do; Controller
+        # will instead init this device during the event
+        pass
+
+    # Check that the given config is actually the config you want (in case an Event refers to the wrong device in device_config_list)
+    def verify(self, config: DeviceConfig) -> None:
+        pass
+
+
+
 # --- PowerSupplyEvent: An Event that requires a PowerSupply device
 class PowerSupplyEvent(DeviceEvent):
 

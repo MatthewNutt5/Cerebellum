@@ -15,7 +15,7 @@ from Cerebellum.Common import create_device
 from Cerebellum.InputProcessing import stdin_listener, stop_event, get_input
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
-from Cerebellum.Event import Event, DeviceEvent
+from Cerebellum.Event import Event, DeviceEvent, DeferredInitEvent
 from Cerebellum.Device.Device import Device, DeviceConfig
 
 import logging, threading, signal
@@ -35,7 +35,9 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
     try:
         
         # Before anything, check that each DeviceEvent will refer to a device that exists and matches the type (e.g. PowerSupplyEvent)
+        # Also build a list of device idx that will defer their inits
         logging.info("Verifying event list ==========")
+        deferred_devices: list[int] = []
         for idx, event in enumerate(test.event_list):
             if isinstance(event, DeviceEvent):
 
@@ -48,12 +50,17 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
                     event.verify(env.device_config_list[event.device_idx])
                 except Exception as e:
                     raise RuntimeError(f"Event #{idx} failed to verify: {e}")
+
+                if isinstance(event, DeferredInitEvent):
+                    deferred_devices.append(event.device_idx)
                 
         logging.info("All events verified successfully.")
 
         # Initialize all devices
         logging.info("Intializing devices ==========")
-        device_list = _init_device_list(env.device_config_list)
+        if deferred_devices:
+            logging.info(f"Devices with deferred initialization will be skipped: {deferred_devices}")
+        device_list = _init_device_list(env.device_config_list, deferred_devices)
 
         # Report and wait for user input
         logging.info("All devices initialized successfully.")
@@ -63,7 +70,7 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
         # Execute all events
         logging.info("")
         logging.info("Executing events ==========")
-        _exec_events(test.event_list, device_list)
+        _exec_events(test.event_list, device_list, env.device_config_list)
 
         # Report and wait for user input
         logging.info("")
@@ -94,19 +101,23 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
 
 
 
-def _init_device_list(device_config_list: list[DeviceConfig]) -> list[Device]:
+def _init_device_list(device_config_list: list[DeviceConfig], deferred_devices: list[int]) -> list[Device]:
     
     device_list = []
     for idx, device_config in enumerate(device_config_list):
-        logging.info(f"Initializing device #{idx} ({device_config.display_name}) ----------")
-        with tab_logging():
-            device_list.append(create_device(device_config))
+        if idx in deferred_devices:
+            # Append None for now to reserve the position of the device to be initialized later
+            device_list.append(None)
+        else:
+            logging.info(f"Initializing device #{idx} ({device_config.display_name}) ----------")
+            with tab_logging():
+                device_list.append(create_device(device_config))
         
     return device_list
 
 
 
-def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
+def _exec_events(event_list: list[Event], device_list: list[Device], device_config_list: list[DeviceConfig]) -> None:
 
     for idx, event in enumerate(event_list):
 
@@ -119,8 +130,15 @@ def _exec_events(event_list: list[Event], device_list: list[Device]) -> None:
         with tab_logging():
             logging.info(f"{event.__class__.__name__}: {event.comment}")
 
-            if isinstance(event, DeviceEvent):
-                event.exec(device_list[event.device_idx])
+            if isinstance(event, DeferredInitEvent):
+                logging.info(f"Initializing device #{event.device_idx} ({device_config_list[event.device_idx].display_name})")
+                device_list[event.device_idx] = create_device(device_config_list[event.device_idx])
+            elif isinstance(event, DeviceEvent):
+                device = device_list[event.device_idx]
+                if device:
+                    event.exec(device_list[event.device_idx])
+                else:
+                    raise RuntimeError(f"Device #{event.device_idx} ({device_config_list[event.device_idx].display_name}) was not initialized before use. Check if a DeferredInitEvent is called before this event.")
             else:
                 event.exec()
 
