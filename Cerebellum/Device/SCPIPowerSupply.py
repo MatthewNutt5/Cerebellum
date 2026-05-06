@@ -137,11 +137,12 @@ class SCPIPowerSupply(PowerSupply):
     # Return the enable/disable state of the given channel
     def get_channel_state(self, channel: int) -> bool:
         self._write_scpi(f"INST:SEL {channel}\n")
-        return bool(self._query_scpi(f"OUTP:STAT?\n"))
+        return bool(int(self._query_scpi(f"OUTP:STAT?\n")))
     
     # Shutdown (i.e. disable, not disconnect) the device
     def shutdown(self) -> None:
         self._write_scpi(f"OUTP:ALL 0\n")
+        time.sleep(5)
 
 
 

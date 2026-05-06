@@ -152,6 +152,7 @@ class CAENPowerSupply(PowerSupply):
     def shutdown(self) -> None:
         for channel in range(self.board.n_channel):
             self.disable_channel(channel)
+        time.sleep(5)
 
 
 

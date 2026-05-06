@@ -278,7 +278,10 @@ class EnvironmentConfigGUI(QWidget):
 
     def get_env(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
-        config.shutdown_order = [int(elem) for elem in self.shutdown_order_edit.text().split(",")]
+        try:
+            config.shutdown_order = [int(elem) for elem in self.shutdown_order_edit.text().split(",")]
+        except:
+            config.shutdown_order = []
         for widget in self.device_widgets:
             config.device_config_list.append(widget.get_device_config())
         return config

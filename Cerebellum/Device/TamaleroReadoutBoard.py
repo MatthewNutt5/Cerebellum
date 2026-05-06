@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from Cerebellum.Device.Device import Device, DeviceConfig
 
-import time, random
+import logging, time, random
 from typing import Any
 from tamalero.ReadoutBoard import ReadoutBoard
 from tamalero.utils import get_kcu
@@ -81,6 +81,8 @@ class TamaleroReadoutBoard(Device):
             etroc=self.config.etroc,
             verbose=False
         )
+
+        logging.info(self.get_id())
 
     # Attempt to close any open connections when deallocated
     def __del__(self):

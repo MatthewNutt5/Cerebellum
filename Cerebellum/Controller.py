@@ -58,8 +58,6 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
 
         # Initialize all devices
         logging.info("Intializing devices ==========")
-        if deferred_devices:
-            logging.info(f"Devices with deferred initialization will be skipped: {deferred_devices}")
         device_list = _init_device_list(env.device_config_list, deferred_devices)
 
         # Report and wait for user input
@@ -74,7 +72,7 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
 
         # Report and wait for user input
         logging.info("")
-        logging.info("All events exeucted successfully.")
+        logging.info("All events executed successfully.")
     
     # If there are any errors in normal operation, skip to disabling the devices
     # Block all external interrupts while doing so, and keep disabling the other
@@ -97,12 +95,16 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
                 logging.info("Device list has not been initialized. Skipping shutdown sequence.")
             else:
                 logging.info("Shutting down devices ==========")
-                _shutdown(env.shutdown_order, device_list)
+                _shutdown(env.shutdown_order, device_list, env.device_config_list)
 
 
 
 def _init_device_list(device_config_list: list[DeviceConfig], deferred_devices: list[int]) -> list[Device]:
     
+    if deferred_devices:
+        deferred_names = [f"{idx} ({device_config_list[idx].display_name})" for idx in deferred_devices]
+        logging.info(f"Devices with deferred initialization will be skipped: {deferred_names}")
+
     device_list = []
     for idx, device_config in enumerate(device_config_list):
         if idx in deferred_devices:
@@ -144,7 +146,7 @@ def _exec_events(event_list: list[Event], device_list: list[Device], device_conf
 
 
 
-def _shutdown(shutdown_order: list[int], device_list: list[Device]):
+def _shutdown(shutdown_order: list[int], device_list: list[Device], device_config_list: list[DeviceConfig]):
 
     # Create final_order, which is [shutdown_order, {rest of device indices, ascending}]
     ascending_order = [dev_idx for dev_idx in list(range(len(device_list))) if dev_idx not in shutdown_order]
@@ -154,8 +156,11 @@ def _shutdown(shutdown_order: list[int], device_list: list[Device]):
     for dev_idx in final_order:
         try:
             device = device_list[dev_idx]
-            logging.info(f"Disabling device #{dev_idx} ({device.config.display_name}) -----")
-            device.shutdown()
+            if device:
+                logging.info(f"Disabling device #{dev_idx} ({device.config.display_name}) -----")
+                device.shutdown()
+            else:
+                logging.info(f"Device #{dev_idx} ({device_config_list[dev_idx].display_name}) was not initialized, skipping shutdown...")
         except Exception as e:
             logging.error(f"While attemping to disable device #{dev_idx}, an exception was encountered: {e}")
             pass

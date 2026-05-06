@@ -134,12 +134,11 @@ class EventWidget(QGroupBox):
         self.device_config_list = device_config_list
 
 
+
     def update_devices(self) -> None:
 
         # If this event requires a device_idx, update the options
-        # Get the old value and copy it over
-        # This way, the user can still see e.g. 2 (Main Power) and select the new 3 (Main Power)
-        # But if this old value stays (i.e. any entry that's not an option), device_idx will be extracted as 0 and could cause issues
+        # Select the same idx if the name and position hasn't changed, deselect if not
         if self.device_config_list and ("device_idx" in self.field_edits) and isinstance(self.field_edits["device_idx"], QComboBox):
             field_edit = self.field_edits["device_idx"]
             field_value = field_edit.currentText()
@@ -147,7 +146,11 @@ class EventWidget(QGroupBox):
             items = [f"{idx} ({device.display_name})" for idx, device in enumerate(self.device_config_list)]
             field_edit.addItems(items)
             field_edit.setMinimumContentsLength(len(max(items, key=len)) + 3)
-            field_edit.setCurrentText(field_value)
+            try:
+                new_idx = items.index(field_value)
+            except ValueError:
+                new_idx = -1
+            field_edit.setCurrentIndex(new_idx)
 
 
 
