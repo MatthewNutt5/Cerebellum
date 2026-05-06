@@ -15,7 +15,7 @@
             "ip": "192.168.0.1",
             "username": "",
             "password": "",
-            "board_slot": 0,
+            "board_slot": 4,
             "class_name": "CAENPowerSupplyConfig"
         },
         {
@@ -23,12 +23,13 @@
             "kcu_address": "192.168.0.10",
             "host": "localhost",
             "rb_index": 0,
-            "flavor": "medium",
+            "flavor": "small",
             "configuration": "default",
             "etroc": "ETROC2",
             "class_name": "TamaleroReadoutBoardConfig"
         }
     ],
+    "python_path": "/home/riceheavyion/.pyenv/versions/3.13.13/bin/python3.13",
     "shutdown_order": [
         2,
         1,

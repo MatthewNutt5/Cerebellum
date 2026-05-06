@@ -1,0 +1,51 @@
+{
+    "event_list": [
+        {
+            "comment": "Set LVPS",
+            "device_idx": 0,
+            "channel": 0,
+            "enable": true,
+            "keep": false,
+            "voltage": 9.0,
+            "current": 6.0,
+            "class_name": "SetPSUEvent"
+        },
+        {
+            "comment": "Wait for RB power draw to stabilize",
+            "seconds": 3.0,
+            "class_name": "SleepEvent"
+        },
+        {
+            "comment": "Eval RB power draw at idle",
+            "device_idx": 0,
+            "channel": 0,
+            "power_low": 1.55,
+            "power_high": 1.65,
+            "class_name": "EvalPSUPowerEvent"
+        },
+        {
+            "comment": "",
+            "device_idx": 2,
+            "class_name": "DeferredInitEvent"
+        },
+        {
+            "comment": "Wait for RB power draw to stabilize",
+            "seconds": 3.0,
+            "class_name": "SleepEvent"
+        },
+        {
+            "comment": "Eval RB power draw after connecting",
+            "device_idx": 0,
+            "channel": 0,
+            "power_low": 2.5,
+            "power_high": 2.7,
+            "class_name": "EvalPSUPowerEvent"
+        },
+        {
+            "comment": "",
+            "device_idx": 2,
+            "class_name": "RBReadADC"
+        }
+    ],
+    "class_name": "TestConfig"
+}
