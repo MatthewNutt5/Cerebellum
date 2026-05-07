@@ -79,8 +79,8 @@ class DeviceEvent(Event):
 
 
 
-# --- DeferredInitEvent: Initialize the device during this event, instead of the initialization phase
-class DeferredInitEvent(DeviceEvent):
+# --- DeferredInit: Initialize the device during this event, instead of the initialization phase
+class DeferredInit(DeviceEvent):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -142,8 +142,8 @@ class PowerSupplyEvent(DeviceEvent):
 Device-less Events =============================================================
 """
 
-# --- SleepEvent: Sleep for a float number of seconds
-class SleepEvent(Event):
+# --- Sleep: Sleep for a float number of seconds
+class Sleep(Event):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -167,8 +167,8 @@ class SleepEvent(Event):
 
 
 
-# --- WaitEvent: Wait for user input before continuing
-class WaitEvent(Event):
+# --- Checkpoint: Wait for user input before continuing
+class Checkpoint(Event):
 
     # Either init with default values or init with input fields (read from JSON)
     def __init__(self, vars_dict: dict[str, Any] = {}):
@@ -183,8 +183,8 @@ class WaitEvent(Event):
 
 
 
-# --- CommandEvent: Run an arbitrary command as a subprocess
-class CommandEvent(Event):
+# --- ConsoleCommand: Run an arbitrary command as a subprocess
+class ConsoleCommand(Event):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -216,8 +216,8 @@ class CommandEvent(Event):
 PowerSupply Events =============================================================
 """
 
-# --- SetPSUEvent: Change the settings of a PowerSupply at a particular channel
-class SetPSUEvent(PowerSupplyEvent):
+# --- SetPSU: Change the settings of a PowerSupply at a particular channel
+class SetPSU(PowerSupplyEvent):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -286,8 +286,8 @@ class SetPSUEvent(PowerSupplyEvent):
 
 
 
-# --- EvalPSUVoltageEvent: Evaluate a PowerSupply's measured voltage at a particular channel
-class EvalPSUVoltageEvent(PowerSupplyEvent):
+# --- EvalPSUVoltage: Evaluate a PowerSupply's measured voltage at a particular channel
+class EvalPSUVoltage(PowerSupplyEvent):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -321,8 +321,8 @@ class EvalPSUVoltageEvent(PowerSupplyEvent):
 
 
 
-# --- EvalPSUCurrentEvent: Evaluate a PowerSupply's measured current at a particular channel
-class EvalPSUCurrentEvent(PowerSupplyEvent):
+# --- EvalPSUCurrent: Evaluate a PowerSupply's measured current at a particular channel
+class EvalPSUCurrent(PowerSupplyEvent):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name
@@ -356,8 +356,8 @@ class EvalPSUCurrentEvent(PowerSupplyEvent):
 
 
 
-# --- EvalPSUPowerEvent: Evaluate a PowerSupply's measured power at a particular channel
-class EvalPSUPowerEvent(PowerSupplyEvent):
+# --- EvalPSUPower: Evaluate a PowerSupply's measured power at a particular channel
+class EvalPSUPower(PowerSupplyEvent):
 
     # *_title = String to show as field title in GUI (e.g. COM Port: _____)
     # Any field without a corresponding field_title will default to the field name

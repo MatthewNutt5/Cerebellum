@@ -1,5 +1,9 @@
 """
-Placeholder
+Common.py
+This file contains several initialization routines for Cerebellum's dynamic
+import system. The Device submodule and the Event subpackage are traversed
+to find valid constructors for use by EnvironmentConfig, TestConfig, and
+_init_device_list in Controller.py.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -12,6 +16,10 @@ from typing import Any
 import logging, pkgutil, importlib, inspect
 
 
+
+"""
+Device Setup ===================================================================
+"""
 
 # Attempt to import all modules in Device
 # Find all modules in Device that have a valid DeviceConfig constructor
@@ -65,6 +73,10 @@ def create_device(config: DeviceConfig) -> Device:
         raise ValueError(f"Device constructor {device_class_name}() not in DEVICES constructor list. Check if the {device_class_name} module is installed.")
 
 
+
+"""
+Event Setup ====================================================================
+"""
 
 # Find all events in Event that have a valid constructor
 # Create a dict of [event class name, event constructor]

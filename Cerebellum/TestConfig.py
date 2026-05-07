@@ -1,14 +1,7 @@
 """
 TestConfig.py
-This file contains the TestConfig class, which is used to specify the
-conditions of a test - power supply voltages/currents, Tamalero programs, etc.
-Settings can be stored in JSON files for later use. Primarily used by
-EnvironmentControl.
-
-This file also contains the PSUSettings class, which is a helper class used to
-specify the settings of a power supply used during a test, and the Criterion
-class, which is a helper class used to specify an individual criterion the test
-should evaluate.
+This file contains the TestConfig class, which is used to specify the sequence
+of commands to execute during a test.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -22,13 +15,19 @@ import logging
 
 
 
+"""
+TestConfig
+This class specifies the sequence of commands to execute during a test - power
+supply settings/readings, RB tests, time delays and checkpoints, etc. A
+configuration can be written as a JSON file and later read back into a config object.
+"""
 class TestConfig:
 
     def __init__(self):
-        self.event_list     : list[Event]   = []    # List of Event objects to be executed during the test
+        self.event_list: list[Event] = [] # List of Event objects to be executed during the test
 
     """
-    Writes the contents of the object to the given filepath in the JSON format. 
+    Writes the current TestConfig to the given `filepath` as a JSON file.
     """
     def write_json(self, filepath: str):
 
@@ -48,8 +47,8 @@ class TestConfig:
             dump(json_dict, f, indent=4)
 
     """
-    Reads the given filepath for a JSON representation of a configuration;
-    populates the fields of the object with the values.
+    Reads the given `filepath` for a JSON representation of a TestConfig;
+    populates the fields of the current TestConfig with the extracted values.
     """
     def read_json(self, filepath: str):
         

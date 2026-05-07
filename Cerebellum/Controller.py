@@ -1,11 +1,8 @@
 """
-EnvironmentControl.py
-This file contains the EnvironmentControl library, which is used to send
-commands and receive data from the devices of the test environment. The primary
-function is run_test, which executes the test specified by a TestConfig object
-on the test environment specified by an EnvironmentConfig object.
-
-This file also contains several helper classes and functions.
+Controller.py
+This file contains the run_test function, which executes the test specified by a
+TestConfig object on the test environment specified by an EnvironmentConfig
+object. This file also contains several helper functions for run_test.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -15,12 +12,13 @@ from Cerebellum.Common import create_device
 from Cerebellum.InputProcessing import stdin_listener, stop_event, get_input
 from Cerebellum.EnvironmentConfig import EnvironmentConfig
 from Cerebellum.TestConfig import TestConfig
-from Cerebellum.Event import Event, DeviceEvent, DeferredInitEvent
+from Cerebellum.Event import Event, DeviceEvent, DeferredInit
 from Cerebellum.Device.Device import Device, DeviceConfig
 
 import logging, threading, signal
 from contextlib import contextmanager
 
+# Start thread to listen for STOP message on stdin - see InputProcessing.py
 threading.Thread(target=stdin_listener, daemon=True).start()
 
 
@@ -29,6 +27,22 @@ threading.Thread(target=stdin_listener, daemon=True).start()
 Main Function + Helpers ========================================================
 """
 
+"""
+Runs the test specified by `test` on the environment specified by `env`.
+The procedure for running a test is as follows:
+1.  Verify the event list. Make sure every event in `test` points to the correct
+    device type in `env` - catch the error now, instead of during runtime.
+2.  Initialize the devices. Connect to each device from `env` and store its
+    object in a list for later use. If a device has a DeferredInit event, skip
+    initialization in this step, as it will be initialized later.
+3.  Present initialization status and wait for the user to confirm.
+4.  Execute all events specified in `test`.
+5.  Shutdown all the devices, then disconnect from them.
+If an error is encountered during any of these steps, the test will abort early
+and skip to the shutdown phase. The shutdown phase cannot be interrupted by any
+means except a SIGKILL (or equivalent) signal - keyboard interrupts (Ctrl+C) and
+regular terminations are ignored.
+"""
 def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
     
     # Attempt to run the regular program sequence
@@ -51,7 +65,7 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
                 except Exception as e:
                     raise RuntimeError(f"Event #{idx} failed to verify: {e}")
 
-                if isinstance(event, DeferredInitEvent):
+                if isinstance(event, DeferredInit):
                     deferred_devices.append(event.device_idx)
                 
         logging.info("All events verified successfully.")
@@ -70,7 +84,7 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
         logging.info("Executing events ==========")
         _exec_events(test.event_list, device_list, env.device_config_list)
 
-        # Report and wait for user input
+        # Report and end the test
         logging.info("")
         logging.info("All events executed successfully.")
     
@@ -99,6 +113,10 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
 
 
 
+"""
+Initializes the devices specified by `device_config_list` and returns a list of
+Device objects. Any device with its index in `deferred_devices` will be skipped.
+"""
 def _init_device_list(device_config_list: list[DeviceConfig], deferred_devices: list[int]) -> list[Device]:
     
     if deferred_devices:
@@ -119,6 +137,11 @@ def _init_device_list(device_config_list: list[DeviceConfig], deferred_devices: 
 
 
 
+"""
+Executes the events specified by `event_list`, using the devices in `device_list`.
+Check for the STOP command on stdin before each event - raise an error to abort
+the test if the command is received. 
+"""
 def _exec_events(event_list: list[Event], device_list: list[Device], device_config_list: list[DeviceConfig]) -> None:
 
     for idx, event in enumerate(event_list):
@@ -132,7 +155,7 @@ def _exec_events(event_list: list[Event], device_list: list[Device], device_conf
         with tab_logging():
             logging.info(f"{event.__class__.__name__}: {event.comment}")
 
-            if isinstance(event, DeferredInitEvent):
+            if isinstance(event, DeferredInit):
                 logging.info(f"Initializing device #{event.device_idx} ({device_config_list[event.device_idx].display_name})")
                 device_list[event.device_idx] = create_device(device_config_list[event.device_idx])
             elif isinstance(event, DeviceEvent):
@@ -146,6 +169,10 @@ def _exec_events(event_list: list[Event], device_list: list[Device], device_conf
 
 
 
+"""
+Shutdown the devices in `device_list`; i.e., call the .shutdown() method on each.
+The devices in `shutdown_order` will be disabled first, then the rest.
+"""
 def _shutdown(shutdown_order: list[int], device_list: list[Device], device_config_list: list[DeviceConfig]):
 
     # Create final_order, which is [shutdown_order, {rest of device indices, ascending}]

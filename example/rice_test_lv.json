@@ -8,12 +8,12 @@
             "keep": false,
             "voltage": 9.0,
             "current": 6.0,
-            "class_name": "SetPSUEvent"
+            "class_name": "SetPSU"
         },
         {
             "comment": "Wait for RB power draw to stabilize",
             "seconds": 3.0,
-            "class_name": "SleepEvent"
+            "class_name": "Sleep"
         },
         {
             "comment": "Eval RB power draw at idle",
@@ -21,17 +21,17 @@
             "channel": 0,
             "power_low": 1.55,
             "power_high": 1.65,
-            "class_name": "EvalPSUPowerEvent"
+            "class_name": "EvalPSUPower"
         },
         {
             "comment": "",
             "device_idx": 2,
-            "class_name": "DeferredInitEvent"
+            "class_name": "DeferredInit"
         },
         {
             "comment": "Wait for RB power draw to stabilize",
             "seconds": 3.0,
-            "class_name": "SleepEvent"
+            "class_name": "Sleep"
         },
         {
             "comment": "Eval RB power draw after connecting",
@@ -39,7 +39,7 @@
             "channel": 0,
             "power_low": 2.5,
             "power_high": 2.7,
-            "class_name": "EvalPSUPowerEvent"
+            "class_name": "EvalPSUPower"
         },
         {
             "comment": "",

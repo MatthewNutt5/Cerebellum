@@ -1,13 +1,7 @@
 """
 EnvironmentConfig.py
-This file contains the EnvironmentConfig class, which is used to specify
-the control structure of a given test stand - IP addresses, interface types,
-etc. Ideally, the environment configuration is determined once and will not
-change between test cycles. Configurations can be stored in JSON files for
-later use. Primarily used by EnvironmentControl.
-
-This file also contains the PSUConfig class, which is a helper class used
-to specify the control configuration of a power supply in the test environment.
+This file contains the EnvironmentConfig class, which specifies the control
+structure of a test environment.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -20,17 +14,23 @@ from json import dump, load
 import logging
 
 
-
+"""
+EnvironmentConfig
+This class specifies the control structure of a test stand - IP addresses,
+communication protocols, etc. Ideally, the environment configuration is
+determined once and will not change between test cycles. A configuration can be
+written as a JSON file and later read back into a config object.
+"""
 class EnvironmentConfig:
 
     def __init__(self):
 
         self.device_config_list : list[DeviceConfig]    = []        # List of DeviceConfig objects to be constructed into device_list
-        self.python_path        : str                   = "python3" # Python path or alias to use for calling the test subprocess
+        self.python_path        : str                   = "python3" # Python path or alias for running the test subprocess
         self.shutdown_order     : list[int]             = []        # List of Device indices specifying the shutdown order upon test termination
 
     """
-    Writes the contents of the object to the given filepath in the JSON format. 
+    Writes the current EnvironmentConfig to the given `filepath` as a JSON file.
     """
     def write_json(self, filepath: str) -> None:
 
@@ -50,8 +50,8 @@ class EnvironmentConfig:
             dump(json_dict, f, indent=4)
 
     """
-    Reads the given filepath for a JSON representation of a configuration;
-    populates the fields of the object with the values.
+    Reads the given `filepath` for a JSON representation of an EnvironmentConfig;
+    populates the fields of the current EnvironmentConfig with the extracted values.
     """
     def read_json(self, filepath: str) -> None:
         

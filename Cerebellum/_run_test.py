@@ -1,13 +1,18 @@
 """
 _run_test.py
 
-This script is primarily used by RunTestGUI to ...
+This script is used by RunTestGUI to run a test program as a subprocess.
+RunTestGUI writes the current EnvironmentConfig and TestConfig to JSON files
+and starts this script in a subprocess. This script will run the test specified
+by those JSON files, and RunTestGUI will capture its output for display in the
+GUI.
 
 This script can be used to bypass normal GUI operation. Save an
 EnvironmentConfig JSON to this directory as "env_config.json", and save a
 TestConfig JSON to this directory as "test_config.json". Then, executing this
 script in a terminal will use these configurations to immediately run a test,
-with the output being displayed in your terminal.
+with the output being displayed in your terminal. Note that these files will be
+overwritten and deleted the next time a test is executed through the GUI.
 """
 
 import sys, os
