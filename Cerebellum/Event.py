@@ -1,5 +1,12 @@
 """
-Placeholder
+Event.py
+This file contains all events for execution during tests. There are two main
+types of events - those that extend DeviceEvent and require a Device to operate
+on, and those that extend Event and do not require a device. All events must
+implement an exec() function, which is used to execute the event. DeviceEvents
+receive an initialized Device object in their exec function, and must also
+implement a verify() function, which is used to check if the given DeviceConfig
+matches the event type.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -107,37 +114,6 @@ class DeferredInit(DeviceEvent):
 
 
 
-# --- PowerSupplyEvent: An Event that requires a PowerSupply device
-class PowerSupplyEvent(DeviceEvent):
-
-    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
-    # Any field without a corresponding field_title will default to the field name
-    channel_title: str = "PSU Channel"
-    
-    # *_options = Options for field to provide in a dropdown menu
-    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
-
-    # Either init with default values or init with input fields (read from JSON)
-    @abstractmethod
-    def __init__(self, vars_dict: dict[str, Any] = {}):
-        if vars_dict:
-            vars(self).update(vars_dict) # Install input into __dict__
-        else:
-            super().__init__()          # Inits comment and device_idx
-            self.channel: int = 0       # PSU channel
-
-    # Execute the event
-    @abstractmethod
-    def exec(self, psu: PowerSupply) -> None:
-        pass
-
-    # Check that the given config is actually a PowerSupplyConfig (in case an Event refers to the wrong device in device_config_list)
-    def verify(self, config: DeviceConfig) -> None:
-        if not isinstance(config, PowerSupplyConfig):
-            raise TypeError(f"Cannot run a PowerSupply Event on a non-PowerSupply Device; this Event likely has a faulty device_idx.")
-
-
-
 """
 Device-less Events =============================================================
 """
@@ -215,6 +191,35 @@ class ConsoleCommand(Event):
 """
 PowerSupply Events =============================================================
 """
+
+# --- PowerSupplyEvent: An Event that requires a PowerSupply device
+class PowerSupplyEvent(DeviceEvent):
+
+    # *_title = String to show as field title in GUI (e.g. COM Port: _____)
+    # Any field without a corresponding field_title will default to the field name
+    channel_title: str = "PSU Channel"
+    
+    # *_options = Options for field to provide in a dropdown menu
+    # Any field without a corresponding field_options will default to a text box/spin box/toggle, depending on the type
+
+    # Either init with default values or init with input fields (read from JSON)
+    @abstractmethod
+    def __init__(self, vars_dict: dict[str, Any] = {}):
+        if vars_dict:
+            vars(self).update(vars_dict) # Install input into __dict__
+        else:
+            super().__init__()          # Inits comment and device_idx
+            self.channel: int = 0       # PSU channel
+
+    # Execute the event
+    @abstractmethod
+    def exec(self, psu: PowerSupply) -> None:
+        pass
+
+    # Check that the given config is actually a PowerSupplyConfig (in case an Event refers to the wrong device in device_config_list)
+    def verify(self, config: DeviceConfig) -> None:
+        if not isinstance(config, PowerSupplyConfig):
+            raise TypeError(f"Cannot run a PowerSupply Event on a non-PowerSupply Device; this Event likely has a faulty device_idx.")
 
 # --- SetPSU: Change the settings of a PowerSupply at a particular channel
 class SetPSU(PowerSupplyEvent):

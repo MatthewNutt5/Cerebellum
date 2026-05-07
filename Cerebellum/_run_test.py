@@ -1,6 +1,5 @@
 """
 _run_test.py
-
 This script is used by RunTestGUI to run a test program as a subprocess.
 RunTestGUI writes the current EnvironmentConfig and TestConfig to JSON files
 and starts this script in a subprocess. This script will run the test specified
