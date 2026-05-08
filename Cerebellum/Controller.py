@@ -88,13 +88,16 @@ def run_test(env: EnvironmentConfig, test: TestConfig) -> None:
         logging.info("")
         logging.info("All events executed successfully.")
     
-    # If there are any errors in normal operation, skip to disabling the devices
-    # Block all external interrupts while doing so, and keep disabling the other
-    # devices even if one of them fails
-    # A standard Exception will end run_test prematurely
-    # A BaseException (e.g. KeyboardInterrupt) will end the entire program
     except Exception as e:
 
+        """
+        If there are any errors in normal operation, skip to disabling the devices
+        Block all external interrupts while doing so, and keep disabling the other
+        devices even if one of them fails
+        A standard Exception will end run_test prematurely
+        A BaseException (e.g. KeyboardInterrupt) will re-raise after run_test is
+        complete
+        """
         print()
         logging.basicConfig(format="%(levelname)s: %(message)s", force=True)
         logging.error(f"During the testing routine, an exception was encountered: {e}")
@@ -131,7 +134,9 @@ def _init_device_list(device_config_list: list[DeviceConfig], deferred_devices: 
         else:
             logging.info(f"Initializing device #{idx} ({device_config.display_name}) ----------")
             with tab_logging():
-                device_list.append(create_device(device_config))
+                device = create_device(device_config)
+                logging.info(device.get_id())
+                device_list.append(device)
         
     return device_list
 
@@ -157,7 +162,9 @@ def _exec_events(event_list: list[Event], device_list: list[Device], device_conf
 
             if isinstance(event, DeferredInit):
                 logging.info(f"Initializing device #{event.device_idx} ({device_config_list[event.device_idx].display_name})")
-                device_list[event.device_idx] = create_device(device_config_list[event.device_idx])
+                device = create_device(device_config_list[event.device_idx])
+                logging.info(device.get_id())
+                device_list[event.device_idx] = device
             elif isinstance(event, DeviceEvent):
                 device = device_list[event.device_idx]
                 if device:

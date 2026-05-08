@@ -1,15 +1,9 @@
 """
 PowerSupply.py
-This file contains the PowerSupply interface, which specifies the high-level
-commands that EnvironmentControl will use.
-
-This file also contains SCPIPowerSupply, which is an implementation of the
-PowerSupply interface for an SCPI-controlled power supply, either over an IP
-or a Serial connection.
-
-Lastly, this file contains a factory function that will instantiate the correct
-object based on the input PSUConfig. For example, a config with an SCPI
-interface will be constructed as an SCPIPowerSupply.
+This file contains the PowerSupply interface class, which specifies high-level
+commands for power supply devices. This way, any implementation of this
+interface can share the same basic commands, even if the control protocol is
+entirely different.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -17,7 +11,7 @@ from __future__ import annotations
 
 from Cerebellum.Device.Device import Device, DeviceConfig
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
 
 

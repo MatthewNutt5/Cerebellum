@@ -1,9 +1,10 @@
 """
+CAENPowerSupply.py
 This file contains the CAENPowerSupply class, which is an implementation of the
 PowerSupply interface for a CAEN HV power supply. In this implementation,
 a CAENPowerSupply specifically represents a single board in a CAEN crate.
 
-Adapted in part from Tao Huang's implementation code.
+Partially adapted from Tao Huang's implementation. https://gitlab.cern.ch/tahuang
 
 An individual CAEN system, a "crate", has a number of "slots" for individual
 PSUs. Each "slot" houses a "board", which has its own "channels" that power
@@ -90,16 +91,15 @@ class CAENPowerSupply(PowerSupply):
             self.board = all_slots[self.config.board_slot]
             if (self.board is None):
                 raise IndexError(f"Invalid board_slot from CAEN HV config ({self.config.board_slot}). Available choices: {[board.slot for board in all_slots if board is not None]}")
-            logging.info(f"Opened CAENPowerSupply at socket ({self.config.ip}).")
-            logging.info(self.get_id())
+            logging.info(f"Opened CAENPowerSupply at address ({self.config.ip}).")
         except Exception as e:
-            raise RuntimeError(f"Failed to open CAENPowerSupply at socket ({self.config.ip}): {e}")
+            raise RuntimeError(f"Failed to open CAENPowerSupply at address ({self.config.ip}): {e}")
 
     # Attempt to close any open connections when deallocated
     def __del__(self):
         if ("device" in vars(self)) and self.device:
             self.device.close()
-            logging.info(f"Closed CAENPowerSupply at socket ({self.config.ip}).")
+            logging.info(f"Closed CAENPowerSupply at address ({self.config.ip}).")
     
     # Get any identification data
     def get_id(self) -> str:

@@ -1,5 +1,7 @@
 """
-Placeholder
+TamaleroReadoutBoard.py
+This file contains the TamaleroReadoutBoard class, which represents an ETL
+Readout Board controlled by the Tamalero libary.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9

@@ -1,5 +1,8 @@
 """
-Placeholder
+SCPIPowerSupply.py
+This file contains the SCPIPowerSupply class, which is an implementation of the
+PowerSupply interface for an SCPI-programmable power supply. This implementation
+supports control over a serial/USB or IP connection.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -66,13 +69,11 @@ class SCPIPowerSupply(PowerSupply):
         elif (self.config.protocol == "IP"):
             try:
                 self.socket = socketscpi.SocketInstrument(self.config.ip)
-                logging.info(f"Opened SCPIPowerSupply at IP socket ({self.config.ip}).")
+                logging.info(f"Opened SCPIPowerSupply at IP address ({self.config.ip}).")
             except Exception as e:
-                raise RuntimeError(f"Failed to open SCPIPowerSupply at IP socket ({self.config.ip}): {e}")
+                raise RuntimeError(f"Failed to open SCPIPowerSupply at IP address ({self.config.ip}): {e}")
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
-        
-        logging.info(self.get_id())
 
     # Attempt to close any open connections when deallocated
     def __del__(self):
@@ -81,7 +82,7 @@ class SCPIPowerSupply(PowerSupply):
             logging.info(f"Closed SCPIPowerSupply at serial port ({self.config.com}).")
         if ("socket" in vars(self)) and self.socket:
             self.socket.close()
-            logging.info(f"Closed SCPIPowerSupply at IP socket ({self.config.ip}).")
+            logging.info(f"Closed SCPIPowerSupply at IP address ({self.config.ip}).")
     
     # Get any identification data
     def get_id(self) -> str:
@@ -161,7 +162,7 @@ class SCPIPowerSupply(PowerSupply):
             self.ser.flush()
         elif (self.config.protocol == "IP"):
             if not self.socket:
-                raise RuntimeError(f"IP socket {self.config.ip} is not open.")
+                raise RuntimeError(f"IP address {self.config.ip} is not open.")
             self.socket.write(cmd)
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
@@ -187,7 +188,7 @@ class SCPIPowerSupply(PowerSupply):
                 return ""
         elif (self.config.protocol == "IP"):
             if not self.socket:
-                raise RuntimeError(f"IP socket {self.config.ip} is not open.")
+                raise RuntimeError(f"IP address {self.config.ip} is not open.")
             return self.socket.query(cmd)
         else:
             raise ValueError(f"Invalid protocol value: {self.config.protocol}")
