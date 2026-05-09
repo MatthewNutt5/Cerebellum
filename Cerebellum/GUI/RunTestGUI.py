@@ -1,5 +1,7 @@
 """
-Placeholder
+RunTestGUI.py
+This file contains the GUI for running a test. It is used as one of the tabs in
+MainGUI, but running this file directly will launch the tab as a standalone window.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -77,23 +79,27 @@ class RunTestGUI(QWidget):
 
 
 
+    # Set the current EnvironmentConfig the test will use
     def set_env(self, config: EnvironmentConfig) -> None:
         self.environment_config = config
 
 
 
+    # Set the current TestConfig the test will use
     def set_test(self, config: TestConfig) -> None:
         self.test_config = config
 
 
 
+    # Helper method for adding messages to the log box
     def _log(self, string: str) -> None: self.log_box.appendPlainText(string)
 
 
 
+    # Start the test with the current configs
     def _start_test(self) -> None:
 
-        # Check for configs
+        # Check for configs, see if a test is already running
         if not self.environment_config:
             QMessageBox.critical(self, "Error", "An environment config must be loaded to run a test.")
             return
@@ -121,10 +127,12 @@ class RunTestGUI(QWidget):
 
 
 
+    # Send message on stdin to stop the test
     def _stop_test(self) -> None:
         if self.process:
             self.process.write(b"STOP\n")
 
+    # When a test completes, update the process reference and delete the temp JSONs
     def _handle_finish(self) -> None:
         self._log("\nProcess has exited.")
         self.process = None
@@ -134,16 +142,19 @@ class RunTestGUI(QWidget):
         except:
             pass
 
+    # When stdout has a message, send it to the log box
     def _handle_stdout(self) -> None:
         if self.process:
             data = self.process.readAllStandardOutput()
             self._log(str(data.data(), "utf-8").strip())
 
+    # When stderr has a message, send it to the log box
     def _handle_stderr(self) -> None:
         if self.process:
             data = self.process.readAllStandardError()
             self._log(str(data.data(), "utf-8").strip())
 
+    # Send an input from the input box to the process
     def _send_input(self) -> None:
         if self.process:
             data = (self.input_line.text() + "\n").encode()
@@ -151,7 +162,9 @@ class RunTestGUI(QWidget):
             self.process.write(data)
 
 
-    
+
+    # Open an existing JSON containing an EnvironmentConfig and set it as the current config
+    # Only used when running standalone
     def _load_env_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
@@ -178,6 +191,8 @@ class RunTestGUI(QWidget):
 
 
 
+    # Open an existing JSON containing a TestConfig and set it as the current config
+    # Only used when running standalone
     def _load_test_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Test Config JSON", "", "JSON Files (*.json)")
         if not filepath:

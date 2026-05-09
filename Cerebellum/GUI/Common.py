@@ -1,5 +1,8 @@
 """
-Placeholder
+Common.py
+This file contains a system that can capture all logging messages during an
+operation. This is used during JSON load/saves in order to display any Cerebellum
+warnings or errors to the user.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9

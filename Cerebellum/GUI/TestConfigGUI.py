@@ -1,5 +1,8 @@
 """
-Placeholder
+TestConfigGUI.py
+This file contains the GUI for building a TestConfig object. It is used
+as one of the tabs in MainGUI, but running this file directly will launch the
+tab as a standalone window.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -93,6 +96,7 @@ class EventWidget(QGroupBox):
 
     
 
+    # Convert event widget into an Event object
     def get_event(self) -> Event:
         
         # First, retrieve an Event instance from the current selected event class
@@ -130,11 +134,13 @@ class EventWidget(QGroupBox):
 
 
 
+    # Set the current device list from an EnvironmentConfig - used for providing options for device_idx
     def set_device_list(self, device_config_list: (list[DeviceConfig] | None)) -> None:
         self.device_config_list = device_config_list
 
 
 
+    # Update the device_idx field (if it exists) with the current device list
     def update_devices(self) -> None:
 
         # If this event requires a device_idx, update the options
@@ -154,6 +160,7 @@ class EventWidget(QGroupBox):
 
 
 
+    # Helper method for adding fields to the config
     def _add_field(self, label_text: str, edit: QWidget) -> None:
 
         h_layout = QHBoxLayout()
@@ -168,6 +175,7 @@ class EventWidget(QGroupBox):
 
 
 
+    # Update the event widget with the fields corresponding to the selected event
     def _update_event_select(self) -> None:
 
         # First, retrieve an Event instance from the current selected event class
@@ -298,6 +306,7 @@ class TestConfigGUI(QWidget):
 
 
 
+    # Set the GUI to match the given TestConfig
     def set_test(self, config: TestConfig) -> None:
 
         # Clear current UI
@@ -310,6 +319,8 @@ class TestConfigGUI(QWidget):
             self._add_event_widget(event)
 
 
+
+    # Convert the current config into a TestConfig object
     def get_test(self) -> TestConfig:
         config = TestConfig()
         for widget in self.event_widgets:
@@ -318,12 +329,14 @@ class TestConfigGUI(QWidget):
     
 
 
+    # Update the current device list and any device_idx fields with a new EnvironmentConfig
     def set_env(self, config: EnvironmentConfig) -> None:
         self.device_config_list = config.device_config_list
         self._update_devices()
 
 
 
+    # Helper method for updating device_idx on all events
     def _update_devices(self) -> None:
         for w in self.event_widgets:
             w.set_device_list(self.device_config_list)
@@ -331,6 +344,7 @@ class TestConfigGUI(QWidget):
 
 
 
+    # Helper method for adding event widgets to the list of events
     def _add_event_widget(self, event: (Event | None) = None) -> None:
         widget = EventWidget(event, self.device_config_list)
         self.event_layout.addWidget(widget)
@@ -339,6 +353,7 @@ class TestConfigGUI(QWidget):
 
 
 
+    # Helper method for removing event widgets from the list of events
     def _remove_event_widget(self, widget: EventWidget, update: bool) -> None:
         self.event_layout.removeWidget(widget)
         widget.deleteLater()
@@ -347,6 +362,7 @@ class TestConfigGUI(QWidget):
 
 
 
+    # Open an existing JSON containing a TestConfig and load it into the GUI
     def _load_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Test Config JSON", "", "JSON Files (*.json)")
         if not filepath:
@@ -373,6 +389,7 @@ class TestConfigGUI(QWidget):
 
 
 
+    # Save the current config into a JSON file
     def _save_json(self) -> None:
         filepath, _ = QFileDialog.getSaveFileName(self, "Save Test Config JSON", "", "JSON Files (*.json)")
         if not filepath:
@@ -386,6 +403,8 @@ class TestConfigGUI(QWidget):
 
 
     
+    # Open an existing JSON containing an EnvironmentConfig and update device_idx fields
+    # Only used when running standalone
     def _load_env_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:

@@ -1,5 +1,8 @@
 """
-Placeholder
+EnvironmentConfigGUI.py
+This file contains the GUI for building an EnvironmentConfig object. It is used
+as one of the tabs in MainGUI, but running this file directly will launch the
+tab as a standalone window.
 """
 
 # Prevents TypeError on type hints for Python 3.7 to 3.9
@@ -89,6 +92,7 @@ class DeviceConfigWidget(QGroupBox):
 
         
 
+    # Convert device widget into a DeviceConfig object
     def get_device_config(self) -> DeviceConfig:
         
         # First, retrieve a DeviceConfig instance from the current selected device class
@@ -122,6 +126,7 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
+    # Helper method for adding fields to the config
     def _add_field(self, label_text: str, edit: QWidget) -> None:
         
         h_layout = QHBoxLayout()
@@ -136,6 +141,7 @@ class DeviceConfigWidget(QGroupBox):
 
 
 
+    # Update the device widget with the fields corresponding to the selected device
     def _update_device_select(self) -> None:
 
         # First, retrieve a DeviceConfig instance from the current selected device class
@@ -270,6 +276,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Set the GUI to match the given EnvironmentConfig
     def set_env(self, config: EnvironmentConfig) -> None:
 
         # Clear current UI
@@ -287,6 +294,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Convert the current config into an EnvironmentConfig object
     def get_env(self) -> EnvironmentConfig:
         config = EnvironmentConfig()
         config.python_path = self.python_path_edit.text()
@@ -300,6 +308,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Helper method for adding device widgets to the list of devices
     def _add_device_widget(self, device_config: (DeviceConfig | None) = None) -> None:
         widget = DeviceConfigWidget(device_config)
         self.device_layout.addWidget(widget)
@@ -308,6 +317,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Helper method for removing device widgets from the list of devices
     def _remove_device_widget(self, widget: DeviceConfigWidget, update: bool) -> None:
         self.device_layout.removeWidget(widget)
         widget.deleteLater()
@@ -316,6 +326,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Open an existing JSON containing an EnvironmentConfig and load it into the GUI
     def _load_json(self) -> None:
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
@@ -342,6 +353,7 @@ class EnvironmentConfigGUI(QWidget):
 
 
 
+    # Save the current config into a JSON file
     def _save_json(self) -> None:
         filepath, _ = QFileDialog.getSaveFileName(self, "Save Environment Config JSON", "", "JSON Files (*.json)")
         if not filepath:
