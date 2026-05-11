@@ -137,6 +137,7 @@ class SCPIPowerSupply(PowerSupply):
 
     # Return the enable/disable state of the given channel
     def get_channel_state(self, channel: int) -> bool:
+        # Will return "0" or "1" as a _string_, so str -> int -> bool
         self._write_scpi(f"INST:SEL {channel}\n")
         return bool(int(self._query_scpi(f"OUTP:STAT?\n")))
     

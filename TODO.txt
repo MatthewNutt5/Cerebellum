@@ -1,22 +1,27 @@
-Fixes/Refactors ==========
+Feature Ideas ==========
 
-- Add more comments and update existing ones
-- Write a README with details on:
-    - Custom implementations of devices, power supplies, and events
-- Tamalero is an absolute pain - you don't just have to install the libraries
-    and import them, you have to add stuff to PATH with a setup script, have
-    local directories for it to crap out result files... is there anything
-    we can do to simplify that?
+Core Features ------
 
-Key Features ==========
-
+- Pre-compiled installation
+    - Compile core Cerebellum into an .exe, but still retain the Device
+        submodule and Event package as dynamically imported libraries, to
+        preserve customizability
+    - May be a good idea to break Event.py into an Event submodule, to help with
+        organization and make it easier to update events
 - Add storage of test results (e.g. csv file)
     - Events no longer return anything to run_test, so maybe start a csv in
         run_test, pass it to event.exec(), and allow them to write outputs?
+- Test preferences
+    - Verbosity level, runtime error behavior, save test results to file
+- Add automatic script for setting up Tamalero enviroment variables (i.e. remove
+    the need to manually run setup.sh every time)
+- Pause on exception in run_test instead of immediate test abort
+    - Could have an (Ignore) / Pause / Abort option in preferences
+- Add log-to-file
+    - Captures entire log output, instead of selective csv writes
 
-QoL Features ==========
+GUI Features -----
 
-- Copy over fields when changing device/event types if the field has the same name
 - Add device indices to EnvironmentConfig (e.g. instead of "DeviceConfig", it 
     says "Device #0", etc.)
 - Allow for moving devices and events up/down
@@ -24,13 +29,11 @@ QoL Features ==========
     - What if someone reorders their devices and breaks the device_idx-es?
         What if they get a TestConfig from someone else with a different setup?
 - Persistence of GUI state
-- Test preferences
-    - Verbosity level, runtime error behavior, save test results to file
-- Pause on exception in run_test instead of immediate test abort
-    - Could have an (Ignore) / Pause / Abort option in preferences
-- Add log-to-file
-- Fix QComboBox flickering
 - Test progress bar
+- Fix QComboBox flickering?
+
+Devices -----
+
 - Add MCU (microcontroller) device
     - Allows for reading and writing to/from pins
     - Could be used to trigger interlocks, read voltages, etc.

@@ -104,8 +104,7 @@ class DeferredInit(DeviceEvent):
 
     # Execute the event
     def exec(self, device: Device) -> None:
-        # This event doesn't actually exec the way other events do; Controller
-        # will instead init this device during the event
+        # This event doesn't actually exec the way other events do; Controller will instead init this device during the event
         pass
 
     # Check that the given config is actually the config you want (in case an Event refers to the wrong device in device_config_list)

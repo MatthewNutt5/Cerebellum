@@ -49,7 +49,7 @@ This class, and all of its children, represent a physical device that commands
 can be sent to. Every Device should handle an initialization routine (using the
 corresponding DeviceConfig), a delete routine (for disconnecting from the device),
 an ID-retrieval function, and a shutdown function - though it may suffice to
-do nothing in these functions, depending on how the device behaves.
+do nothing in some of these functions, depending on how the device behaves.
 """
 class Device(ABC):
 
